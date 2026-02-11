@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+/* 1. Typography Import */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@theme {
+  /* 2. Color System */
+
+  /* Brand */
+  --color-primary: #4f46e5;
+  /* Indigo 600 */
+  --color-primary-hover: #4338ca;
+  /* Indigo 700 */
+  --color-accent: #8b5cf6;
+  /* Violet 500 */
+  --color-accent-soft: #f5f3ff;
+  /* Violet 50 */
+
+  /* Backgrounds */
+  --color-bg-primary: #f8fafc;
+  /* Slate 50 - Page BG */
+  --color-bg-surface: #ffffff;
+  /* White - Card BG */
+  --color-bg-muted: #f1f5f9;
+  /* Slate 100 - Secondary BG */
+
+  /* Text */
+  --color-text-primary: #0f172a;
+  /* Slate 900 */
+  --color-text-secondary: #475569;
+  /* Slate 600 */
+  --color-text-muted: #94a3b8;
+  /* Slate 400 */
+  --color-text-on-primary: #ffffff;
+
+  /* Borders */
+  --color-border-default: #e2e8f0;
+  /* Slate 200 */
+  --color-border-strong: #cbd5e1;
+  /* Slate 300 */
+
+  /* Status */
+  --color-success: #10b981;
+  /* Emerald 500 */
+  --color-warning: #f59e0b;
+  /* Amber 500 */
+  --color-danger: #ef4444;
+  /* Red 500 */
+  --color-info: #3b82f6;
+  /* Blue 500 */
+
+  --color-success-bg: #ecfdf5;
+  /* Emerald 50 */
+  --color-warning-bg: #fffbeb;
+  /* Amber 50 */
+  --color-danger-bg: #fef2f2;
+  /* Red 50 */
+  --color-info-bg: #eff6ff;
+  /* Blue 50 */
+
+  /* 3. Typography System */
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* 4. Spacing System (4pt Grid) */
+  --spacing-1: 4px;
+  --spacing-2: 8px;
+  --spacing-3: 12px;
+  --spacing-4: 16px;
+  --spacing-6: 24px;
+  --spacing-8: 32px;
+  --spacing-12: 48px;
+  --spacing-16: 64px;
+
+  /* 5. Radius System */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* 6. Shadow System */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-lift: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Base Styles */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar (Subtle) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-default);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
+
+/* Utility Layer */
+@layer utilities {
+
+  /* Typography Scale */
+  .text-display-xl {
+    @apply text-5xl md:text-6xl font-bold tracking-tight leading-tight text-text-primary;
+  }
+
+  .text-display-lg {
+    @apply text-4xl md:text-5xl font-semibold tracking-tight leading-tight text-text-primary;
+  }
+
+  .text-heading-lg {
+    @apply text-2xl md:text-3xl font-semibold tracking-tight leading-snug text-text-primary;
+  }
+
+  .text-heading-md {
+    @apply text-xl md:text-2xl font-semibold tracking-tight leading-normal text-text-primary;
+  }
+
+  .text-card-title {
+    @apply text-lg font-semibold leading-normal text-text-primary;
+  }
+
+  .text-body-lg {
+    @apply text-lg font-normal leading-relaxed text-text-secondary;
+  }
+
+  .text-body-md {
+    @apply text-base font-normal leading-relaxed text-text-secondary;
+  }
+
+  .text-body-sm {
+    @apply text-sm font-normal leading-normal text-text-secondary;
+  }
+
+  .text-caption {
+    @apply text-xs font-medium leading-normal text-text-muted;
+  }
+
+  .text-meta {
+    @apply text-xs font-medium uppercase tracking-wider text-text-muted;
+  }
+
+  .text-metric {
+    @apply text-3xl md:text-4xl font-bold tracking-tight text-text-primary leading-none;
+  }
+
+  /* Animations */
+  .animate-fade-up {
+    animation: fadeUp 0.5s ease-out forwards;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
