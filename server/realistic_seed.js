@@ -1,14 +1,16 @@
-const mongoose = require('mongoose');
-const { faker } = require('@faker-js/faker');
-const bcrypt = require('bcryptjs');
-require('dotenv').config();
+import mongoose from 'mongoose';
+import { faker } from '@faker-js/faker';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // Models
-const User = require('./src/models/User');
-const Hackathon = require('./src/models/Hackathon');
-const Team = require('./src/models/Team');
-const Submission = require('./src/models/Submission');
-const Evaluation = require('./src/models/Evaluation');
+import User from './src/models/User.js';
+import Hackathon from './src/models/Hackathon.js';
+import Team from './src/models/Team.js';
+import Submission from './src/models/Submission.js';
+import Evaluation from './src/models/Evaluation.js';
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/hackflow';
 

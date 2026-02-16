@@ -1,9 +1,9 @@
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const { getParticipationData } = require('../controllers/participationController');
+import { protect } from '../middleware/authMiddleware.js';
+import { getParticipationData } from '../controllers/participationController.js';
 
 router.get('/:hackathonId/me', protect, getParticipationData);
 
-module.exports = router;
+export default router;

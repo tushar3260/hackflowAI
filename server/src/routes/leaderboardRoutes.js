@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { getLeaderboard, refreshLeaderboard } = require('../controllers/leaderboardController');
-const { protect } = require('../middleware/authMiddleware');
+import { getLeaderboard, refreshLeaderboard } from '../controllers/leaderboardController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 router.get('/:hackathonId', protect, getLeaderboard);
 router.post('/:hackathonId/refresh', protect, refreshLeaderboard);
 
-module.exports = router;
+export default router;

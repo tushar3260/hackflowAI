@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const scoreSchema = new mongoose.Schema({
     criteriaId: {
@@ -74,4 +74,4 @@ const evaluationSchema = new mongoose.Schema({
 // Compound index to ensure one judge per submission
 evaluationSchema.index({ submission: 1, judge: 1 }, { unique: true });
 
-module.exports = mongoose.model('Evaluation', evaluationSchema);
+export default mongoose.model('Evaluation', evaluationSchema);

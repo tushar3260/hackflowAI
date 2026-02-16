@@ -1,6 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -11,7 +15,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@faker-js/faker": "^10.3.0",
     "axios": "^1.13.4",

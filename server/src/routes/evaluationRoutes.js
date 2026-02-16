@@ -1,12 +1,12 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     submitEvaluation,
     getEvaluation,
     getMyEvaluationForSubmission
-} = require('../controllers/evaluationController');
-const { protect, authorize } = require('../middleware/authMiddleware');
-const { judgeHackathonGuard } = require('../middleware/judgeMiddleware');
+} from '../controllers/evaluationController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+import { judgeHackathonGuard } from '../middleware/judgeMiddleware.js';
 
 router.post('/submit', protect, authorize('judge', 'organizer'), judgeHackathonGuard, submitEvaluation);
 router.get('/submission/:submissionId', protect, authorize('judge', 'organizer'), judgeHackathonGuard, getMyEvaluationForSubmission);
@@ -22,4 +22,4 @@ router.get('/:id', protect, authorize('judge', 'organizer'), getEvaluation); // 
 // To guard /:id, we'd need to look up evaluation -> hackathon. Middleware can't do that easily.
 // I will apply to `submit` and `submission/:submissionId` (which are the main operational ones).
 
-module.exports = router;
+export default router;

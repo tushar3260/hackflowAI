@@ -1,10 +1,10 @@
 
-const HackathonParticipantProfile = require('../models/HackathonParticipantProfile');
+import HackathonParticipantProfile from '../models/HackathonParticipantProfile.js';
 
 // @desc    Create or Update Participant Profile for a Hackathon
 // @route   POST /api/participant-profile/:hackathonId
 // @access  Private
-const createOrUpdateProfile = async (req, res) => {
+export const createOrUpdateProfile = async (req, res) => {
     try {
         const { hackathonId } = req.params;
         const {
@@ -65,7 +65,7 @@ const createOrUpdateProfile = async (req, res) => {
 // @desc    Get Participant Profile Status
 // @route   GET /api/participant-profile/:hackathonId/status
 // @access  Private
-const getProfileStatus = async (req, res) => {
+export const getProfileStatus = async (req, res) => {
     try {
         const profile = await HackathonParticipantProfile.findOne({
             user: req.user.id,
@@ -81,7 +81,7 @@ const getProfileStatus = async (req, res) => {
 // @desc    Get My Profile for a hackathon
 // @route   GET /api/participant-profile/:hackathonId/me
 // @access  Private
-const getMyProfile = async (req, res) => {
+export const getMyProfile = async (req, res) => {
     try {
         const profile = await HackathonParticipantProfile.findOne({
             user: req.user.id,
@@ -98,8 +98,4 @@ const getMyProfile = async (req, res) => {
     }
 };
 
-module.exports = {
-    createOrUpdateProfile,
-    getProfileStatus,
-    getMyProfile
-};
+

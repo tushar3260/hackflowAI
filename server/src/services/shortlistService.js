@@ -1,10 +1,10 @@
-const LeaderboardSnapshot = require('../models/LeaderboardSnapshot');
-const Team = require('../models/Team');
+import LeaderboardSnapshot from '../models/LeaderboardSnapshot.js';
+import Team from '../models/Team.js';
 
 // @desc    Shortlist top N teams for next round
 // @param   hackathonId
 // @param   count (Number of teams to shortlist)
-const shortlistTeams = async (hackathonId, count) => {
+export const shortlistTeams = async (hackathonId, count) => {
     try {
         // Get latest leaderboard
         const snapshot = await LeaderboardSnapshot.findOne({ hackathon: hackathonId })
@@ -29,6 +29,4 @@ const shortlistTeams = async (hackathonId, count) => {
     }
 };
 
-module.exports = {
-    shortlistTeams
-};
+

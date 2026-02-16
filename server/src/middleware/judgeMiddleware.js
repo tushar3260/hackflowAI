@@ -1,6 +1,6 @@
-const Hackathon = require('../models/Hackathon');
+import Hackathon from '../models/Hackathon.js';
 
-const judgeHackathonGuard = async (req, res, next) => {
+export const judgeHackathonGuard = async (req, res, next) => {
     try {
         // 1. Verify Role
         if (req.user.role !== 'judge') {
@@ -40,4 +40,4 @@ const judgeHackathonGuard = async (req, res, next) => {
     }
 };
 
-module.exports = { judgeHackathonGuard };
+

@@ -1,14 +1,14 @@
-const LeaderboardSnapshot = require('../models/LeaderboardSnapshot');
-const Team = require('../models/Team');
-const Submission = require('../models/Submission');
-const Evaluation = require('../models/Evaluation');
-const Hackathon = require('../models/Hackathon');
+import LeaderboardSnapshot from '../models/LeaderboardSnapshot.js';
+import Team from '../models/Team.js';
+import Submission from '../models/Submission.js';
+import Evaluation from '../models/Evaluation.js';
+import Hackathon from '../models/Hackathon.js';
 
 // CONFIG: Split between Judge and AI scores
 const JUDGE_WEIGHT = 0.7; // 70%
 const AI_WEIGHT = 0.3;    // 30%
 
-const generateLeaderboard = async (hackathonId) => {
+export const generateLeaderboard = async (hackathonId) => {
     try {
         const hackathon = await Hackathon.findById(hackathonId);
         if (!hackathon) throw new Error('Hackathon not found');
@@ -114,12 +114,9 @@ const generateLeaderboard = async (hackathonId) => {
     }
 };
 
-const getLatestSnapshot = async (hackathonId) => {
+export const getLatestSnapshot = async (hackathonId) => {
     return await LeaderboardSnapshot.findOne({ hackathon: hackathonId })
         .sort({ generatedAt: -1 });
 };
 
-module.exports = {
-    generateLeaderboard,
-    getLatestSnapshot
-};
+

@@ -1,4 +1,4 @@
-const resolveEffectiveRoundStatus = (round) => {
+export const resolveEffectiveRoundStatus = (round) => {
     // 1. If auto-control disabled, return raw status
     if (round.autoTimeControlEnabled === false) {
         return round.status;
@@ -30,4 +30,4 @@ const resolveEffectiveRoundStatus = (round) => {
     }
 };
 
-module.exports = { resolveEffectiveRoundStatus };
+

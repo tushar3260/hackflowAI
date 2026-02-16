@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const submissionSchema = new mongoose.Schema({
     hackathon: {
@@ -76,4 +76,4 @@ const submissionSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Submission', submissionSchema);
+export default mongoose.model('Submission', submissionSchema);

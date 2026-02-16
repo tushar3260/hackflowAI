@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     submitWork,
     getMyTeamSubmissions,
     getSubmissionsByRound,
     getSubmissionById
-} = require('../controllers/submissionController');
-const { protect, authorize } = require('../middleware/authMiddleware');
-const { judgeHackathonGuard } = require('../middleware/judgeMiddleware');
-const upload = require('../middleware/uploadMiddleware');
+} from '../controllers/submissionController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+import { judgeHackathonGuard } from '../middleware/judgeMiddleware.js';
+import upload from '../middleware/uploadMiddleware.js';
 
 // Configure upload fields
 const uploadFields = upload.fields([
@@ -21,4 +21,4 @@ router.get('/my', protect, getMyTeamSubmissions);
 router.get('/:id', protect, getSubmissionById);
 router.get('/hackathon/:hackathonId/round/:roundIndex', protect, authorize('organizer', 'judge'), judgeHackathonGuard, getSubmissionsByRound);
 
-module.exports = router;
+export default router;

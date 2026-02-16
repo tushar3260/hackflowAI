@@ -1,15 +1,15 @@
 
-const Hackathon = require('../models/Hackathon');
-const Team = require('../models/Team');
-const Submission = require('../models/Submission');
-const Evaluation = require('../models/Evaluation');
-const User = require('../models/User');
-const HackathonParticipantProfile = require('../models/HackathonParticipantProfile');
+import Hackathon from '../models/Hackathon.js';
+import Team from '../models/Team.js';
+import Submission from '../models/Submission.js';
+import Evaluation from '../models/Evaluation.js';
+import User from '../models/User.js';
+import HackathonParticipantProfile from '../models/HackathonParticipantProfile.js';
 
 // @desc    Get aggregated participation data for a user in a hackathon
 // @route   GET /api/participation/:hackathonId/me
 // @access  Private
-const getParticipationData = async (req, res) => {
+export const getParticipationData = async (req, res) => {
     try {
         const { hackathonId } = req.params;
         const userId = req.user.id;
@@ -179,6 +179,4 @@ const getParticipationData = async (req, res) => {
     }
 };
 
-module.exports = {
-    getParticipationData
-};
+

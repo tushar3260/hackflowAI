@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const teamSchema = new mongoose.Schema({
     name: {
@@ -38,4 +38,4 @@ const teamSchema = new mongoose.Schema({
 // Note: This is complex to enforce purely largely at schema level for 'members' array efficiently without compound indexes on subdocuments which Mongo doesn't fully support for "is member of ANY team in hackathon X".
 // We will enforce the "one team per hackathon" rule strictly in the Controller logic.
 
-module.exports = mongoose.model('Team', teamSchema);
+export default mongoose.model('Team', teamSchema);

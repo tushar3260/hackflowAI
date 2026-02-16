@@ -1,4 +1,4 @@
-const Hackathon = require('../models/Hackathon');
+import Hackathon from '../models/Hackathon.js';
 
 const organizerOwnershipGuard = async (req, res, next) => {
     try {
@@ -30,4 +30,4 @@ const organizerOwnershipGuard = async (req, res, next) => {
     }
 };
 
-module.exports = organizerOwnershipGuard;
+export default organizerOwnershipGuard;

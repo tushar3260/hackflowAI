@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const criteriaSchema = new mongoose.Schema({
     title: {
@@ -152,4 +152,4 @@ const hackathonSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Hackathon', hackathonSchema);
+export default mongoose.model('Hackathon', hackathonSchema);

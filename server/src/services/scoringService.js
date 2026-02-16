@@ -3,7 +3,7 @@
  * @param {Array} scores Array of { givenMarks }
  * @returns {Number} Sum of marks
  */
-const calculateJudgeTotal = (scores) => {
+export const calculateJudgeTotal = (scores) => {
     return scores.reduce((acc, curr) => acc + (parseFloat(curr.givenMarks) || 0), 0);
 };
 
@@ -14,7 +14,7 @@ const calculateJudgeTotal = (scores) => {
  * @param {Number} aiTotal 
  * @returns {Number}
  */
-const calculateFinalScore = (judgeTotal, aiTotal = null, config = { mode: 'hybrid', aiWeight: 0.3, judgeWeight: 0.7 }) => {
+export const calculateFinalScore = (judgeTotal, aiTotal = null, config = { mode: 'hybrid', aiWeight: 0.3, judgeWeight: 0.7 }) => {
     const { mode, aiWeight, judgeWeight } = config;
 
     // Default weights if missing
@@ -48,14 +48,10 @@ const calculateFinalScore = (judgeTotal, aiTotal = null, config = { mode: 'hybri
  * @param {Number} weightagePercent The weight of this round (e.g., 30%)
  * @returns {Number} Weighted score (e.g., 25.5)
  */
-const calculateWeightedScore = (finalTotal, roundMaxScore, weightagePercent) => {
+export const calculateWeightedScore = (finalTotal, roundMaxScore, weightagePercent) => {
     if (roundMaxScore === 0) return 0;
     const percentage = finalTotal / roundMaxScore;
     return percentage * weightagePercent;
 };
 
-module.exports = {
-    calculateJudgeTotal,
-    calculateFinalScore,
-    calculateWeightedScore
-};
+

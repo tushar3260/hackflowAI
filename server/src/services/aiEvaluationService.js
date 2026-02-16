@@ -1,4 +1,4 @@
-const analyzeSubmission = async (submission, criteria) => {
+export const analyzeSubmission = async (submission, criteria) => {
     try {
         console.log(`🤖 Starting Local AI Analysis for Submission: ${submission._id}`);
 
@@ -121,4 +121,4 @@ const analyzeSubmission = async (submission, criteria) => {
     }
 };
 
-module.exports = { analyzeSubmission };
+

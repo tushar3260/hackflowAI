@@ -1,16 +1,16 @@
 
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const upload = require('../middleware/uploadMiddleware');
-const {
+import { protect } from '../middleware/authMiddleware.js';
+import upload from '../middleware/uploadMiddleware.js';
+import {
     createOrUpdateProfile,
     getProfileStatus,
     getMyProfile
-} = require('../controllers/participantProfileController');
+} from '../controllers/participantProfileController.js';
 
 router.post('/:hackathonId', protect, upload.single('resume'), createOrUpdateProfile);
 router.get('/:hackathonId/status', protect, getProfileStatus);
 router.get('/:hackathonId/me', protect, getMyProfile);
 
-module.exports = router;
+export default router;

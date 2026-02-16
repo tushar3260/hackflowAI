@@ -1,6 +1,6 @@
-const Team = require('../models/Team');
-const User = require('../models/User');
-const Hackathon = require('../models/Hackathon');
+import Team from '../models/Team.js';
+import User from '../models/User.js';
+import Hackathon from '../models/Hackathon.js';
 
 // Helper to generate random 6-char uppercase code
 const generateTeamCode = () => {
@@ -15,7 +15,7 @@ const generateTeamCode = () => {
 // @desc    Create new team
 // @route   POST /api/teams/create
 // @access  Private (Participant only)
-const createTeam = async (req, res) => {
+export const createTeam = async (req, res) => {
     try {
         const { name, hackathonId, invites } = req.body;
 
@@ -88,7 +88,7 @@ const createTeam = async (req, res) => {
 // @desc    Join team by code
 // @route   POST /api/teams/join
 // @access  Private (Participant only)
-const joinTeamByCode = async (req, res) => {
+export const joinTeamByCode = async (req, res) => {
     try {
         const { teamCode } = req.body;
 
@@ -135,7 +135,7 @@ const joinTeamByCode = async (req, res) => {
 // @desc    Leave team
 // @route   POST /api/teams/leave
 // @access  Private (Participant only)
-const leaveTeam = async (req, res) => {
+export const leaveTeam = async (req, res) => {
     try {
         const { teamId } = req.body;
 
@@ -173,7 +173,7 @@ const leaveTeam = async (req, res) => {
 // @desc    Get my team for a hackathon OR all my teams
 // @route   GET /api/teams/my
 // @access  Private
-const getMyTeams = async (req, res) => {
+export const getMyTeams = async (req, res) => {
     try {
         // Can filter by ?hackathonId=...
         const query = { members: req.user.id };
@@ -195,7 +195,7 @@ const getMyTeams = async (req, res) => {
 // @desc    Get teams by hackathon
 // @route   GET /api/teams/hackathon/:hackathonId
 // @access  Private (Organizer only)
-const getTeamsByHackathon = async (req, res) => {
+export const getTeamsByHackathon = async (req, res) => {
     try {
         const teams = await Team.find({ hackathon: req.params.hackathonId })
             .populate('members', 'name email')
@@ -210,7 +210,7 @@ const getTeamsByHackathon = async (req, res) => {
 // @desc    Get my team for a SPECIFIC hackathon (simple check)
 // @route   GET /api/teams/my/by-hackathon/:hackathonId
 // @access  Private
-const getMyTeamForHackathon = async (req, res) => {
+export const getMyTeamForHackathon = async (req, res) => {
     try {
         const team = await Team.findOne({
             hackathon: req.params.hackathonId,
@@ -235,11 +235,4 @@ const getMyTeamForHackathon = async (req, res) => {
     }
 };
 
-module.exports = {
-    createTeam,
-    joinTeamByCode,
-    leaveTeam,
-    getMyTeams,
-    getTeamsByHackathon,
-    getMyTeamForHackathon
-};
+

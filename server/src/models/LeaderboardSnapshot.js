@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const leaderboardSnapshotSchema = new mongoose.Schema({
     hackathon: {
@@ -51,4 +51,4 @@ const leaderboardSnapshotSchema = new mongoose.Schema({
 // Index to quickly find latest snapshot for a hackathon
 leaderboardSnapshotSchema.index({ hackathon: 1, generatedAt: -1 });
 
-module.exports = mongoose.model('LeaderboardSnapshot', leaderboardSnapshotSchema);
+export default mongoose.model('LeaderboardSnapshot', leaderboardSnapshotSchema);

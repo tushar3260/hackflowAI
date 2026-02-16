@@ -1,12 +1,12 @@
-const Evaluation = require('../models/Evaluation');
-const Submission = require('../models/Submission');
-const Hackathon = require('../models/Hackathon');
-const scoringService = require('../services/scoringService');
+import Evaluation from '../models/Evaluation.js';
+import Submission from '../models/Submission.js';
+import Hackathon from '../models/Hackathon.js';
+import * as scoringService from '../services/scoringService.js';
 
 // @desc    Submit evaluation
 // @route   POST /api/evaluations/submit
 // @access  Private (Judge only)
-const submitEvaluation = async (req, res) => {
+export const submitEvaluation = async (req, res) => {
     try {
         const { submissionId, scores, comments } = req.body;
 
@@ -144,7 +144,7 @@ const submitEvaluation = async (req, res) => {
 // @desc    Get specific evaluation
 // @route   GET /api/evaluations/:id
 // @access  Private
-const getEvaluation = async (req, res) => {
+export const getEvaluation = async (req, res) => {
     try {
         const evaluation = await Evaluation.findById(req.params.id)
             .populate('judge', 'name email');
@@ -160,7 +160,7 @@ const getEvaluation = async (req, res) => {
 // @desc    Get evaluation for a submission by current judge
 // @route   GET /api/evaluations/submission/:submissionId
 // @access  Private (Judge)
-const getMyEvaluationForSubmission = async (req, res) => {
+export const getMyEvaluationForSubmission = async (req, res) => {
     try {
         const evaluation = await Evaluation.findOne({
             submission: req.params.submissionId,
@@ -173,8 +173,4 @@ const getMyEvaluationForSubmission = async (req, res) => {
     }
 };
 
-module.exports = {
-    submitEvaluation,
-    getEvaluation,
-    getMyEvaluationForSubmission
-};
+

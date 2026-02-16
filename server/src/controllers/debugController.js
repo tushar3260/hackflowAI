@@ -1,14 +1,13 @@
-const Submission = require('../models/Submission');
-const Hackathon = require('../models/Hackathon');
-const { analyzeSubmission } = require('../services/aiEvaluationService');
-
-const Evaluation = require('../models/Evaluation');
-const { calculateJudgeTotal, calculateFinalScore } = require('../services/scoringService');
+import Submission from '../models/Submission.js';
+import Hackathon from '../models/Hackathon.js';
+import { analyzeSubmission } from '../services/aiEvaluationService.js';
+import Evaluation from '../models/Evaluation.js';
+import { calculateJudgeTotal, calculateFinalScore } from '../services/scoringService.js';
 
 // @desc    Manually trigger AI analysis for a submission
 // @route   POST /api/debug/run-ai/:submissionId
 // @access  Private (Organizer/Admin)
-const runAiAnalysis = async (req, res) => {
+export const runAiAnalysis = async (req, res) => {
     try {
         const { submissionId } = req.params;
 
@@ -81,4 +80,4 @@ const runAiAnalysis = async (req, res) => {
     }
 };
 
-module.exports = { runAiAnalysis };
+

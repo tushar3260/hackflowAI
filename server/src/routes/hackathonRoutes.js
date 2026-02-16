@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     createHackathon,
     getHackathons,
     getHackathonById,
@@ -15,9 +15,9 @@ const {
     getParticipantStats,
     updateRoundStatus,
     publishLeaderboard
-} = require('../controllers/hackathonController');
-const { protect, authorize } = require('../middleware/authMiddleware');
-const organizerOwnershipGuard = require('../middleware/organizerOwnershipGuard');
+} from '../controllers/hackathonController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+import organizerOwnershipGuard from '../middleware/organizerOwnershipGuard.js';
 
 router.get('/stats/organizer', protect, authorize('organizer'), getOrganizerStats);
 router.get('/stats/judge', protect, authorize('judge'), getJudgeStats);
@@ -41,4 +41,4 @@ router.post('/:id/round/:roundIndex/publish-leaderboard', protect, authorize('or
 router.post('/:id/judges', protect, authorize('organizer'), organizerOwnershipGuard, addJudge);
 router.delete('/:id/judges/:judgeId', protect, authorize('organizer'), organizerOwnershipGuard, removeJudge);
 
-module.exports = router;
+export default router;

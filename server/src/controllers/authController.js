@@ -1,6 +1,6 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User');
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
 
 // Generate JWT
 const generateToken = (id) => {
@@ -12,7 +12,7 @@ const generateToken = (id) => {
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
     const { name, email, password, role } = req.body;
 
     if (!name || !email || !password) {
@@ -50,7 +50,7 @@ const registerUser = async (req, res) => {
 // @desc    Authenticate a user
 // @route   POST /api/auth/login
 // @access  Public
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Check for user email
@@ -72,7 +72,7 @@ const loginUser = async (req, res) => {
 // @desc    Get user data
 // @route   GET /api/auth/me
 // @access  Private
-const getMe = async (req, res) => {
+export const getMe = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     res.status(200).json({
@@ -96,7 +96,7 @@ const getMe = async (req, res) => {
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
 // @access  Private
-const updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     if (user) {
@@ -152,9 +152,4 @@ const updateProfile = async (req, res) => {
     }
 };
 
-module.exports = {
-    registerUser,
-    loginUser,
-    getMe,
-    updateProfile
-};
+

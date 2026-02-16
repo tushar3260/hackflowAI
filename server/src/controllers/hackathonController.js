@@ -1,12 +1,12 @@
-const Hackathon = require('../models/Hackathon');
-const User = require('../models/User');
-const Team = require('../models/Team');
-const Submission = require('../models/Submission');
+import Hackathon from '../models/Hackathon.js';
+import User from '../models/User.js';
+import Team from '../models/Team.js';
+import Submission from '../models/Submission.js';
 
 // @desc    Create new hackathon
 // @route   POST /api/hackathons
 // @access  Private (Organizer only)
-const createHackathon = async (req, res) => {
+export const createHackathon = async (req, res) => {
     try {
         const { title, description, theme, startDate, endDate, rounds } = req.body;
 
@@ -50,7 +50,7 @@ const createHackathon = async (req, res) => {
 // @desc    Get all hackathons with filters, sort, and pagination
 // @route   GET /api/hackathons
 // @access  Public
-const getHackathons = async (req, res) => {
+export const getHackathons = async (req, res) => {
     try {
         const { status, theme, difficulty, search, sort, page = 1, limit = 9 } = req.query;
 
@@ -115,7 +115,7 @@ const getHackathons = async (req, res) => {
 // @desc    Get hackathon by ID
 // @route   GET /api/hackathons/:id
 // @access  Public
-const getHackathonById = async (req, res) => {
+export const getHackathonById = async (req, res) => {
     try {
         const hackathon = await Hackathon.findById(req.params.id)
             .populate('createdBy', 'name email')
@@ -132,7 +132,7 @@ const getHackathonById = async (req, res) => {
 // @desc    Update hackathon
 // @route   PUT /api/hackathons/:id
 // @access  Private (Organizer only)
-const updateHackathon = async (req, res) => {
+export const updateHackathon = async (req, res) => {
     try {
         const hackathon = await Hackathon.findById(req.params.id);
 
@@ -162,7 +162,7 @@ const updateHackathon = async (req, res) => {
 // @desc    Delete hackathon
 // @route   DELETE /api/hackathons/:id
 // @access  Private (Organizer only)
-const deleteHackathon = async (req, res) => {
+export const deleteHackathon = async (req, res) => {
     try {
         const hackathon = await Hackathon.findById(req.params.id);
 
@@ -186,7 +186,7 @@ const deleteHackathon = async (req, res) => {
 // @desc    Add a judge to hackathon
 // @route   POST /api/hackathons/:id/judges
 // @access  Private (Organizer)
-const addJudge = async (req, res) => {
+export const addJudge = async (req, res) => {
     try {
         const { email } = req.body;
         const hackathon = await Hackathon.findById(req.params.id);
@@ -219,7 +219,7 @@ const addJudge = async (req, res) => {
 // @desc    Remove a judge from hackathon
 // @route   DELETE /api/hackathons/:id/judges/:judgeId
 // @access  Private (Organizer)
-const removeJudge = async (req, res) => {
+export const removeJudge = async (req, res) => {
     try {
         const { id, judgeId } = req.params;
         const hackathon = await Hackathon.findById(id);
@@ -253,7 +253,7 @@ const removeJudge = async (req, res) => {
 // @desc    Get hackathons where user is judge
 // @route   GET /api/hackathons/judge/my
 // @access  Private (Judge)
-const getJudgeHackathons = async (req, res) => {
+export const getJudgeHackathons = async (req, res) => {
     try {
         const hackathons = await Hackathon.find({ judges: req.user.id });
         res.status(200).json(hackathons);
@@ -265,7 +265,7 @@ const getJudgeHackathons = async (req, res) => {
 // @desc    Get hackathons created by organizer
 // @route   GET /api/hackathons/organizer/my
 // @access  Private (Organizer)
-const getOrganizerHackathons = async (req, res) => {
+export const getOrganizerHackathons = async (req, res) => {
     try {
         const hackathons = await Hackathon.find({ createdBy: req.user.id })
             .populate('createdBy', 'name email')
@@ -279,7 +279,7 @@ const getOrganizerHackathons = async (req, res) => {
 // @desc    Get Organizer Stats
 // @route   GET /api/hackathons/stats/organizer
 // @access  Private (Organizer)
-const getOrganizerStats = async (req, res) => {
+export const getOrganizerStats = async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -337,7 +337,7 @@ const getOrganizerStats = async (req, res) => {
 // @desc    Get Judge Stats
 // @route   GET /api/hackathons/stats/judge
 // @access  Private (Judge)
-const getJudgeStats = async (req, res) => {
+export const getJudgeStats = async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -393,7 +393,7 @@ const getJudgeStats = async (req, res) => {
 // @desc    Get Participant Stats
 // @route   GET /api/hackathons/stats/participant
 // @access  Private (Participant)
-const getParticipantStats = async (req, res) => {
+export const getParticipantStats = async (req, res) => {
     try {
         const userId = req.user.id;
 
@@ -463,7 +463,7 @@ const getParticipantStats = async (req, res) => {
 // @desc    Update Round Status
 // @route   PUT /api/hackathons/:id/round/:roundIndex/status
 // @access  Private (Organizer)
-const updateRoundStatus = async (req, res) => {
+export const updateRoundStatus = async (req, res) => {
     try {
         const { id, roundIndex } = req.params;
         const { status } = req.body;
@@ -517,7 +517,7 @@ const updateRoundStatus = async (req, res) => {
 // @desc    Publish Leaderboard for a Round
 // @route   POST /api/hackathons/:id/round/:roundIndex/publish-leaderboard
 // @access  Private (Organizer)
-const publishLeaderboard = async (req, res) => {
+export const publishLeaderboard = async (req, res) => {
     try {
         const { id, roundIndex } = req.params;
         const hackathon = await Hackathon.findById(id);
@@ -541,19 +541,4 @@ const publishLeaderboard = async (req, res) => {
     }
 };
 
-module.exports = {
-    createHackathon,
-    getHackathons,
-    getHackathonById,
-    updateHackathon,
-    deleteHackathon,
-    addJudge,
-    removeJudge,
-    getJudgeHackathons,
-    getOrganizerHackathons,
-    getOrganizerStats,
-    getJudgeStats,
-    getParticipantStats,
-    updateRoundStatus,
-    publishLeaderboard
-};
+

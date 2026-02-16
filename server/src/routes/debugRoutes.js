@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { runAiAnalysis } = require('../controllers/debugController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+import { runAiAnalysis } from '../controllers/debugController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 // Protect and only allow organizers (or add 'admin' if role exists)
 router.post('/run-ai/:submissionId', protect, authorize('organizer'), runAiAnalysis);
 
-module.exports = router;
+export default router;

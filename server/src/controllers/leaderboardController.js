@@ -1,5 +1,6 @@
-const LeaderboardSnapshot = require('../models/LeaderboardSnapshot');
-const leaderboardService = require('../services/leaderboardService');
+import LeaderboardSnapshot from '../models/LeaderboardSnapshot.js';
+import * as leaderboardService from '../services/leaderboardService.js';
+import Hackathon from '../models/Hackathon.js';
 
 // @desc    Get leaderboard for a hackathon
 // @route   GET /api/leaderboard/:hackathonId
@@ -7,7 +8,7 @@ const leaderboardService = require('../services/leaderboardService');
 // @desc    Get leaderboard for a hackathon
 // @route   GET /api/leaderboard/:hackathonId
 // @access  Private
-const getLeaderboard = async (req, res) => {
+export const getLeaderboard = async (req, res) => {
     try {
         const { hackathonId } = req.params;
 
@@ -21,7 +22,7 @@ const getLeaderboard = async (req, res) => {
 
         // Fetch Hackathon to check Round Statuses
         // We need to know which rounds are 'published' to show their scores
-        const Hackathon = require('../models/Hackathon'); // Lazy load or move to top
+        // Hackathon is already imported at top level
         const hackathon = await Hackathon.findById(hackathonId);
         if (!hackathon) return res.status(404).json({ message: 'Hackathon not found' });
 
@@ -96,7 +97,7 @@ const getLeaderboard = async (req, res) => {
 // @desc    Force regenerate leaderboard (Organizer only)
 // @route   POST /api/leaderboard/:hackathonId/refresh
 // @access  Private (Organizer)
-const refreshLeaderboard = async (req, res) => {
+export const refreshLeaderboard = async (req, res) => {
     try {
         const snapshot = await leaderboardService.generateLeaderboard(req.params.hackathonId);
         res.status(200).json(snapshot);
@@ -105,7 +106,4 @@ const refreshLeaderboard = async (req, res) => {
     }
 };
 
-module.exports = {
-    getLeaderboard,
-    refreshLeaderboard
-};
+

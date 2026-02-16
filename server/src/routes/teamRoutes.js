@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const {
+import {
     createTeam,
     joinTeamByCode,
     leaveTeam,
     getMyTeams,
     getTeamsByHackathon,
     getMyTeamForHackathon
-} = require('../controllers/teamController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+} from '../controllers/teamController.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
 
 router.post('/create', protect, createTeam);
 router.post('/join', protect, joinTeamByCode);
@@ -17,4 +17,4 @@ router.get('/my', protect, getMyTeams);
 router.get('/hackathon/:hackathonId', protect, authorize('organizer'), getTeamsByHackathon);
 router.get('/my/by-hackathon/:hackathonId', protect, getMyTeamForHackathon);
 
-module.exports = router;
+export default router;

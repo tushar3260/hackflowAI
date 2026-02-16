@@ -1,5 +1,5 @@
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const participantProfileSchema = new mongoose.Schema({
     user: {
@@ -58,4 +58,4 @@ const participantProfileSchema = new mongoose.Schema({
 // Enforce unique profile per user per hackathon
 participantProfileSchema.index({ user: 1, hackathon: 1 }, { unique: true });
 
-module.exports = mongoose.model('HackathonParticipantProfile', participantProfileSchema);
+export default mongoose.model('HackathonParticipantProfile', participantProfileSchema);

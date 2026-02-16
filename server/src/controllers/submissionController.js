@@ -1,12 +1,14 @@
-const Submission = require('../models/Submission');
-const Hackathon = require('../models/Hackathon');
-const { analyzeSubmission } = require('../services/aiEvaluationService');
-const Team = require('../models/Team');
+import Submission from '../models/Submission.js';
+import Hackathon from '../models/Hackathon.js';
+import { analyzeSubmission } from '../services/aiEvaluationService.js';
+import Team from '../models/Team.js';
+import { resolveEffectiveRoundStatus } from '../utils/roundStatusHelper.js';
+import HackathonParticipantProfile from '../models/HackathonParticipantProfile.js';
 
 // @desc    Submit work for a round
 // @route   POST /api/submissions/submit
 // @access  Private (Participant Leader)
-const submitWork = async (req, res) => {
+export const submitWork = async (req, res) => {
     try {
         const { hackathonId, roundIndex, notesText, githubUrl, demoVideoUrl } = req.body;
 
@@ -53,7 +55,7 @@ const submitWork = async (req, res) => {
         // Check done later with round deadline logic
 
         // STRICT STATUS CHECK
-        const { resolveEffectiveRoundStatus } = require('../utils/roundStatusHelper');
+        // Imported at top level
         const effectiveStatus = resolveEffectiveRoundStatus(round);
 
         // If round status is NOT 'open', block submission
@@ -62,7 +64,7 @@ const submitWork = async (req, res) => {
         }
 
         // 2.5. Verify Participant Profile
-        const HackathonParticipantProfile = require('../models/HackathonParticipantProfile'); // Lazy load
+        // Imported at top level
         const profile = await HackathonParticipantProfile.findOne({
             user: req.user.id,
             hackathon: hackathonId,
@@ -216,7 +218,7 @@ const submitWork = async (req, res) => {
 // @desc    Get my team's submissions
 // @route   GET /api/submissions/my
 // @access  Private
-const getMyTeamSubmissions = async (req, res) => {
+export const getMyTeamSubmissions = async (req, res) => {
     try {
         // Find teams user is in
         const teams = await Team.find({ members: req.user.id });
@@ -235,7 +237,7 @@ const getMyTeamSubmissions = async (req, res) => {
 // @desc    Get submissions by hackathon and round (for Organizer/Judge)
 // @route   GET /api/submissions/hackathon/:hackathonId/round/:roundIndex
 // @access  Private (Organizer/Judge)
-const getSubmissionsByRound = async (req, res) => {
+export const getSubmissionsByRound = async (req, res) => {
     try {
         const { hackathonId, roundIndex } = req.params;
 
@@ -256,7 +258,7 @@ const getSubmissionsByRound = async (req, res) => {
 // @desc    Get submission by ID
 // @route   GET /api/submissions/:id
 // @access  Private
-const getSubmissionById = async (req, res) => {
+export const getSubmissionById = async (req, res) => {
     try {
         const submission = await Submission.findById(req.params.id)
             .populate('team', 'name teamCode');
@@ -267,9 +269,4 @@ const getSubmissionById = async (req, res) => {
     }
 };
 
-module.exports = {
-    submitWork,
-    getMyTeamSubmissions,
-    getSubmissionsByRound,
-    getSubmissionById
-};
+
