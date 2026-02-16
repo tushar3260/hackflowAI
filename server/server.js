@@ -23,27 +23,7 @@ const app = express();
 
 // Middleware
 // CORS Configuration
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'http://localhost:5000',
-    process.env.CLIENT_URL // Production Frontend URL
-].filter(Boolean); // Remove undefined/null
-
-app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, curl, postman)
-        if (!origin) return callback(null, true);
-
-        if (allowedOrigins.indexOf(origin) !== -1 || !process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
-            callback(null, true);
-        } else {
-            console.log('❌ CORS Blocked Origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
-}));
+app.use(cors("*"));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
