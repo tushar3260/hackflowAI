@@ -87,24 +87,33 @@ export const loginUser = async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 export const getMe = async (req, res) => {
-    const user = await User.findById(req.user.id);
+    try {
+        const user = await User.findById(req.user.id);
 
-    res.status(200).json({
-        _id: user.id,
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        collegeName: user.collegeName,
-        course: user.course,
-        yearOfStudy: user.yearOfStudy,
-        phone: user.phone,
-        skills: user.skills,
-        githubUrl: user.githubUrl,
-        linkedinUrl: user.linkedinUrl,
-        resumeUrl: user.resumeUrl,
-        avatar: user.avatar
-    });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found in DB' });
+        }
+
+        res.status(200).json({
+            _id: user.id,
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            collegeName: user.collegeName,
+            course: user.course,
+            yearOfStudy: user.yearOfStudy,
+            phone: user.phone,
+            skills: user.skills,
+            githubUrl: user.githubUrl,
+            linkedinUrl: user.linkedinUrl,
+            resumeUrl: user.resumeUrl,
+            avatar: user.avatar
+        });
+    } catch (e) {
+        console.error('❌ GetMe Error:', e.message);
+        res.status(500).json({ message: 'Server Error', error: e.message });
+    }
 };
 
 // @desc    Update user profile
