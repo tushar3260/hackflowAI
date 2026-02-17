@@ -1,17 +1,45 @@
+
+import axios from 'axios';
+
 export const analyzeSubmission = async (submission, criteria) => {
     try {
-        console.log(`🤖 Starting Local AI Analysis for Submission: ${submission._id}`);
+        console.log(`🤖 Starting AI Analysis for Submission: ${submission._id}`);
 
         // 1. Extract Content
         const textContent = submission.notesText || "";
         const links = [submission.githubUrl, submission.demoVideoUrl, submission.pptUrl, submission.documentUrl].filter(Boolean);
+        const extractedText = `Links Provided: ${links.join(', ')}`;
+
+        // 2. Try External AI Service
+        if (process.env.AI_SERVICE_URL) {
+            try {
+                console.log(`Connecting to AI Service at ${process.env.AI_SERVICE_URL}...`);
+                const response = await axios.post(`${process.env.AI_SERVICE_URL}/analyze-submission`, {
+                    notesText: textContent,
+                    extractedText: extractedText,
+                    githubUrl: submission.githubUrl,
+                    criteria: criteria.map(c => ({ title: c.title, maxMarks: c.maxMarks }))
+                });
+
+                if (response.data) {
+                    console.log('✅ AI Service Response Received');
+                    return {
+                        ...response.data,
+                        analyzedAt: new Date()
+                    };
+                }
+            } catch (aiError) {
+                console.warn('⚠️ External AI Service Failed. Falling back to local heuristics.', aiError.message);
+            }
+        }
+
+        // --- FALLBACK HEURISTICS (If AI Service missing or failed) ---
+        console.log("Using Local Heuristics Fallback...");
 
         let totalAiScore = 0;
         const criteriaScores = [];
         const feedbackList = [];
 
-        // 2. Heuristic Scoring based on Criteria
-        // If criteria exists, try to map heuristics. Otherwise use generic.
         if (criteria && criteria.length > 0) {
             criteria.forEach(c => {
                 let score = 0;
@@ -19,7 +47,6 @@ export const analyzeSubmission = async (submission, criteria) => {
                 const max = c.maxMarks;
                 const titleLower = c.title.toLowerCase();
 
-                // Heuristic A: Description/Documentation (Keywords & Length)
                 if (titleLower.includes("doc") || titleLower.includes("desc") || titleLower.includes("concept")) {
                     const length = textContent.length;
                     if (length > 500) score = max;
@@ -30,17 +57,15 @@ export const analyzeSubmission = async (submission, criteria) => {
                     if (score < max * 0.5) feedback = `Expand on your ${c.title}. The description is too brief.`;
                     else feedback = `Good detail in ${c.title}.`;
                 }
-                // Heuristic B: Code/Technical (Links)
                 else if (titleLower.includes("code") || titleLower.includes("repo") || titleLower.includes("tech")) {
                     if (submission.githubUrl) {
-                        score = max; // Assume perfect if link exists for now (validated elsewhere?)
+                        score = max;
                         feedback = "Repository link provided.";
                     } else {
                         score = 0;
                         feedback = "Missing repository link.";
                     }
                 }
-                // Heuristic C: Demo/Presentation
                 else if (titleLower.includes("demo") || titleLower.includes("video") || titleLower.includes("pitch")) {
                     if (submission.demoVideoUrl || submission.pptUrl) {
                         score = max;
@@ -50,15 +75,10 @@ export const analyzeSubmission = async (submission, criteria) => {
                         feedback = "Missing demo video or presentation.";
                     }
                 }
-                // Fallback: Generic text check
                 else {
                     score = textContent.length > 100 ? max * 0.8 : max * 0.5;
                     feedback = "Automated check completed.";
                 }
-
-                // Randomize slightly to simulate "Analysis" variance (0.9 - 1.0 factor)
-                // score = Math.floor(score * (0.9 + Math.random() * 0.1)); 
-                // Actually, let's keep it deterministic for "Audit" purposes.
 
                 totalAiScore += score;
                 criteriaScores.push({
@@ -71,14 +91,11 @@ export const analyzeSubmission = async (submission, criteria) => {
                 if (feedback) feedbackList.push(feedback);
             });
         } else {
-            // Default generic score if no criteria
             totalAiScore = 50;
             feedbackList.push("No specific criteria found. Default score assigned.");
         }
 
-        // 3. Construct Result matching AIFeedbackPanel expectations
         const summary = `Evaluation based on ${criteria ? criteria.length : 0} criteria. Scored ${totalAiScore} points.`;
-
         let strengths = [];
         let improvementTips = [];
         let riskFlags = [];
@@ -91,34 +108,32 @@ export const analyzeSubmission = async (submission, criteria) => {
             }
         });
 
-        if (textContent.length < 50) riskFlags.push("Very short description.");
+        if (textContent.length < 50) riskFlags.push("Top Description very short.");
         if (!submission.githubUrl) riskFlags.push("No GitHub URL provided.");
 
         const result = {
             totalAiScore: totalAiScore,
             summary: summary,
             aiScores: criteriaScores.map(cs => ({
-                criteriaTitle: cs.title, // Map title to criteriaTitle
+                criteriaTitle: cs.title,
                 score: cs.score,
                 reason: cs.reason,
                 maxMarks: cs.maxMarks
             })),
-            strengths: strengths.length > 0 ? strengths : ["Submission structure meets basic requirements."],
-            weaknesses: [], // Optional in UI?
-            improvementTips: improvementTips.length > 0 ? improvementTips : ["Review criteria for potential bonus points."],
-            innovationScore: Math.min(10, Math.floor(totalAiScore / 10)), // Mock innovation score derived from total
+            strengths: strengths.length > 0 ? strengths : ["Submission structure meets requirements."],
+            weaknesses: [],
+            improvementTips: improvementTips.length > 0 ? improvementTips : ["Review criteria for bonus points."],
+            innovationScore: Math.min(10, Math.floor(totalAiScore / 10)),
             riskFlags: riskFlags,
-            confidence: 0.85,
+            confidence: 0.5,
             analyzedAt: new Date()
         };
 
-        console.log('✅ AI Analysis Complete:', result.totalAiScore);
+        console.log('✅ Local Analysis Complete:', result.totalAiScore);
         return result;
 
     } catch (error) {
-        console.error('AI Service Error:', error.message);
-        return null; // Fail silently to allow fallback
+        console.error('AI Service Critical Error:', error.message);
+        return null;
     }
 };
-
-

@@ -1,35 +1,77 @@
+
 from flask import Flask, request, jsonify
 import re
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+
+# Download NLTK data (lightweight)
+try:
+    nltk.data.find('vader_lexicon')
+except LookupError:
+    nltk.download('vader_lexicon')
+
+try:
+    nltk.data.find('punkt')
+except LookupError:
+    nltk.download('punkt')
 
 app = Flask(__name__)
 
-# --- HEURISTIC KNOWLEDGE BASE ---
-INNOVATION_KEYWORDS = [
-    "novel", "unique", "patent", "breakthrough", "cutting-edge", "proprietary",
-    "state-of-the-art", "revolutionize", "game-changer", "advanced algorithm",
-    "machine learning", "blockchain", "generative ai", "neural network", "quantum"
-]
+# --- IDEAL PROJECT ARCHETYPES (The "Training Data") ---
+# We compare submissions against these "perfect" descriptions to measure alignment.
 
-TECHNICAL_KEYWORDS = [
-    "architecture", "scalability", "latency", "throughput", "endpoint", "api",
-    "database", "schema", "microservices", "docker", "kubernetes", "react", "node",
-    "optimization", "security", "authentication", "encryption"
-]
+IDEAL_INNOVATION = """
+This project introduces a novel, groundbreaking approach to solving a complex problem. 
+It utilizes state-of-the-art technology, unique algorithms, and patent-pending methods. 
+The solution is a game-changer, disrupting the current market with creativity and out-of-the-box thinking.
+It leverages generative AI, blockchain, or quantum computing in a way never seen before.
+"""
 
-BUSINESS_KEYWORDS = [
-    "market fit", "target audience", "revenue model", "monetization", "cost-effective",
-    "scalability", "user acquisition", "retention", "roi", "business plan"
-]
+IDEAL_TECHNICAL = """
+The system architecture is highly scalable, secure, and optimized for performance. 
+It uses microservices, Docker, Kubernetes, and efficient database schemas. 
+The code is clean, modular, and follows best practices with low latency and high throughput. 
+API endpoints are RESTful or GraphQL, with robust authentication and encryption.
+Implementation details show a deep understanding of the tech stack (React, Node, Python, cloud).
+"""
 
-def calculate_keyword_score(text: str, keywords: list) -> float:
-    text_lower = text.lower()
-    count = 0
-    for kw in keywords:
-        if kw in text_lower:
-            count += 1
-    # Simple sigmoid-like saturation: 0 keywords = 0, 5+ keywords = 1.0
-    score = min(count / 5.0, 1.0)
-    return score
+IDEAL_BUSINESS = """
+The product has a clear target audience and a strong business model. 
+It addresses a significant market need with a cost-effective solution. 
+The plan includes user acquisition strategies, retention metrics, and a path the monetization.
+It demonstrates high ROI, financial feasibility, and real-world impact.
+"""
+
+# Combined corpus for vectorization training
+CORPUS = [IDEAL_INNOVATION, IDEAL_TECHNICAL, IDEAL_BUSINESS]
+
+# Initialize Vectorizer
+vectorizer = TfidfVectorizer(stop_words='english')
+# "Train" the vectorizer on our ideal archetypes
+tfidf_matrix_archetypes = vectorizer.fit_transform(CORPUS)
+
+# Initialize Sentiment Analyzer
+sia = SentimentIntensityAnalyzer()
+
+def get_similarity_scores(text):
+    if not text or len(text.strip()) < 10:
+        return 0, 0, 0
+    
+    # Transform submission text into the same vector space
+    submission_vector = vectorizer.transform([text])
+    
+    # Calculate Cosine Similarity against each archetype
+    # similarity_matrix shape: [1, 3] (1 submission vs 3 archetypes)
+    similarities = cosine_similarity(submission_vector, tfidf_matrix_archetypes)
+    
+    inn_score = similarities[0][0] # Index 0: Innovation
+    tech_score = similarities[0][1] # Index 1: Technical
+    biz_score = similarities[0][2] # Index 2: Business
+    
+    return inn_score, tech_score, biz_score
 
 @app.route('/analyze-submission', methods=['POST'])
 def analyze_submission():
@@ -44,8 +86,23 @@ def analyze_submission():
     
     combined_text = (notes_text or "") + "\n" + (extracted_text or "")
     
-    # 1. Innovation Score
-    inn_score = calculate_keyword_score(combined_text, INNOVATION_KEYWORDS) * 10 
+    # --- 1. ML Analysis via TF-IDF & Cosine Similarity ---
+    sim_innovation, sim_technical, sim_business = get_similarity_scores(combined_text)
+    
+    # --- 2. Sentiment Analysis ---
+    sentiment_score = sia.polarity_scores(combined_text)['compound'] # -1 to 1
+    
+    # Normalize scores (0.0 - 1.0) -> scaled to 0-10 or 0-100 logic
+    # Similarity scores are usually low (0.1 - 0.4) for short text vs archetype.
+    # We apply a scaling factor to make them human-readable "grades".
+    # E.g., a similarity of 0.2 might be a "good" match in VSM.
+    
+    def scale_sim(score):
+        return min(score * 4.0, 1.0) # Scale up: 0.25 -> 1.0 (100%)
+
+    scaled_inn = scale_sim(sim_innovation)
+    scaled_tech = scale_sim(sim_technical)
+    scaled_biz = scale_sim(sim_business)
     
     scores = []
     total_score = 0
@@ -56,50 +113,52 @@ def analyze_submission():
     tips = []
     risks = []
     
-    # Sum maxMarks
-    for c in criteria:
-        total_max += c.get('maxMarks', 0)
-
-    # 2. Criteria Analysis
+    # --- 3. Criteria Scoring ---
     for crit in criteria:
         c_title = crit.get('title', "").lower()
         c_max = crit.get('maxMarks', 0)
         c_score = 0
         reason = ""
+        total_max += c_max
         
-        # Heuristic mapping based on title
+        # Smart Mapping based on Criteria Title
         if "innovation" in c_title or "novelty" in c_title:
-            ratio = calculate_keyword_score(combined_text, INNOVATION_KEYWORDS)
-            c_score = ratio * c_max
-            reason = f"Detected {int(ratio*5)} innovation keywords."
-            if ratio > 0.6: strengths.append("Strong usage of innovation terminology.")
-            else: tips.append("Highlight more innovative aspects or technologies used.")
+            c_score = scaled_inn * c_max
+            reason = f"ML Innovation Match: {int(scaled_inn*100)}%."
+            if scaled_inn > 0.7: strengths.append("Concept is highly aligned with innovation standards.")
+            else: tips.append("Try to describe unique value proposition more clearly.")
             
-        elif "technical" in c_title or "code" in c_title or "implementation" in c_title:
-            ratio = calculate_keyword_score(combined_text, TECHNICAL_KEYWORDS)
-            # Github URL bonus
-            if github_url:
-                ratio = min(ratio + 0.3, 1.0)
-                reason += " GitHub URL provided (+)."
+        elif "technical" in c_title or "code" in c_title:
+            base_score = scaled_tech
+            if github_url: 
+                base_score = min(base_score + 0.2, 1.0) # Bonus for repo
+                reason = "GitHub Repo Bonus + "
             
-            c_score = ratio * c_max
-            reason = f"Technical content analysis score: {int(ratio*100)}%."
-            if ratio < 0.4: weaknesses.append("Technical implementation details seem sparse.")
+            c_score = base_score * c_max
+            reason += f"ML Tech Match: {int(scaled_tech*100)}%."
+            if scaled_tech < 0.4: weaknesses.append("Technical architecture description is vague.")
             
-        elif "business" in c_title or "feasibility" in c_title or "impact" in c_title:
-            ratio = calculate_keyword_score(combined_text, BUSINESS_KEYWORDS)
-            c_score = ratio * c_max
-            reason = f"Business/Impact terms found."
-            if ratio < 0.3: tips.append("Elaborate on the business model or real-world impact.")
+        elif "business" in c_title or "impact" in c_title:
+            c_score = scaled_biz * c_max
+            reason = f"ML Business Match: {int(scaled_biz*100)}%."
             
         else:
-            # Default generic scoring based on length/structure
-            length_ratio = min(len(combined_text) / 1000.0, 1.0) # 1000 chars = max score
-            c_score = length_ratio * c_max
-            reason = "Scored based on description completeness."
+            # Fallback: lexical diversity (unique words / total words)
+            words = nltk.word_tokenize(combined_text)
+            unique_words = set(words)
+            lexical_diversity = len(unique_words) / len(words) if words else 0
             
-        # Rounding & ensuring minimum 20%
-        c_score = round(max(c_score, c_max * 0.2), 1) 
+            # Length penalty
+            length_factor = min(len(words) / 100.0, 1.0)
+            
+            c_score = (lexical_diversity * 0.5 + length_factor * 0.5) * c_max
+            reason = f"Scored based on content richness ({int(lexical_diversity*100)}%)."
+
+        # Sentiment Adjustment (Enthusiastic pitches get a small boost)
+        if sentiment_score > 0.5:
+             c_score = min(c_score * 1.05, c_max)
+        
+        c_score = round(max(c_score, c_max * 0.1), 1) # Min 10%
         scores.append({
             "criteriaTitle": crit.get('title', ""),
             "score": c_score,
@@ -107,20 +166,16 @@ def analyze_submission():
         })
         total_score += c_score
 
-    # 3. Overall Summary
-    summary = "The submission "
-    if total_max > 0 and total_score / total_max > 0.7:
-        summary += "shows strong potential with detailed descriptions. "
-    else:
-        summary += "appears to be an early stage prototype or lacks detailed documentation. "
-        
-    if "python" in combined_text.lower(): summary += "Python detected. "
-    if "javascript" in combined_text.lower() or "js" in combined_text.lower(): summary += "JavaScript detected. "
+    # --- 4. Summary Generation ---
+    summary = "Analysis Complete. "
+    if scaled_inn > 0.6: summary += "Strong innovative elements detected. "
+    if scaled_tech > 0.6: summary += "Technical implementation appears robust. "
+    if scaled_biz > 0.6: summary += "Business viability is clear. "
     
-    if len(combined_text) < 100:
-        risks.append("Description is very short.")
+    if len(combined_text) < 50:
+        risks.append("Submission text is extremely short.")
     if not github_url:
-        risks.append("No GitHub URL provided.")
+        risks.append("Missing source code link.")
 
     return jsonify({
         "aiScores": scores,
@@ -129,7 +184,7 @@ def analyze_submission():
         "strengths": strengths,
         "weaknesses": weaknesses,
         "improvementTips": tips,
-        "innovationScore": round(inn_score, 1),
+        "innovationScore": round(scaled_inn * 10, 1),
         "riskFlags": risks
     })
 

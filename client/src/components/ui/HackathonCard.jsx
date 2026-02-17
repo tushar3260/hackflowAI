@@ -39,7 +39,7 @@ const HackathonCard = ({ hackathon }) => {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1">
+                <div className="flex-1 flex flex-col">
                     <CardTitle className="mb-2 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">
                         {title}
                     </CardTitle>
@@ -60,7 +60,7 @@ const HackathonCard = ({ hackathon }) => {
                     </div>
 
                     {/* Meta details grid */}
-                    <div className="grid grid-cols-2 gap-3 mb-6 pt-4 border-t border-[var(--color-border-default)]">
+                    <div className="grid grid-cols-2 gap-3 mb-6 pt-4 border-t border-[var(--color-border-default)] mt-auto">
                         <div className="flex flex-col">
                             <span className="text-xs text-[var(--color-text-muted)] mb-1 flex items-center gap-1"><Calendar size={10} /> Deadline</span>
                             <span className="text-body-sm font-semibold text-[var(--color-text-primary)]">
