@@ -17,9 +17,14 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'Please add a password'],
+        required: [function () { return !this.googleId; }, 'Please add a password'],
         minlength: 6,
         select: false
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
     },
     role: {
         type: String,
@@ -36,6 +41,15 @@ const userSchema = new mongoose.Schema({
     linkedinUrl: { type: String },
     resumeUrl: { type: String },
     avatar: { type: String },
+
+    // Email Verification
+    isEmailVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerificationToken: String,
+    emailVerificationExpire: Date,
+
     createdAt: {
         type: Date,
         default: Date.now

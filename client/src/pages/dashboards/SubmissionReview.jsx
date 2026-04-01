@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect, useContext } from 'react';
-import api, { SERVER_URL } from '../../api/config';
+import { useState, useEffect, useContext, useCallback } from 'react';
+import api from '../../api/config';
+import { getFileUrl, ensureAbsoluteUrl } from '../../utils/fileUtils';
 import { useParams, useNavigate } from 'react-router-dom';
 import AuthContext from '../../context/AuthContext';
 import PlatformTable from '../../components/ui/PlatformTable';
@@ -21,15 +22,41 @@ export default function SubmissionReview() {
     const [rounds, setRounds] = useState([]);
     const [selectedRound, setSelectedRound] = useState('');
     const [submissions, setSubmissions] = useState([]);
-    const [loading, setLoading] = useState(false);
+
+    const fetchHackathons = useCallback(async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+            let url = '/hackathons';
+            if (user?.role === 'judge') {
+                url = '/hackathons/judge/my';
+            }
+
+            const res = await api.get(url, config);
+            const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
+            setHackathons(data);
+
+            if (hackathonId) {
+                setSelectedHackathon(hackathonId);
+            } else if (!selectedHackathon && data.length > 0) {
+                setSelectedHackathon(data[0]._id);
+            }
+        } catch (err) { console.error(err); }
+    }, [user, hackathonId, selectedHackathon]);
+
+    const fetchSubmissions = useCallback(async () => {
+        try {
+            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
+            const res = await api.get(`/submissions/hackathon/${selectedHackathon}/round/${selectedRound}`, config);
+            setSubmissions(res.data);
+        } catch (err) { console.error(err); }
+    }, [selectedHackathon, selectedRound]);
 
     useEffect(() => {
         fetchHackathons();
-    }, []);
+    }, [fetchHackathons]);
 
     useEffect(() => {
         if (selectedHackathon) {
-            // Find hackathon object to get rounds
             const h = hackathons.find(x => x._id === selectedHackathon);
             if (h) {
                 setRounds(h.rounds || []);
@@ -42,45 +69,7 @@ export default function SubmissionReview() {
         if (selectedHackathon && selectedRound !== '') {
             fetchSubmissions();
         }
-    }, [selectedHackathon, selectedRound]);
-
-    const fetchHackathons = async () => {
-        try {
-            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            // If judge, fetch only assigned. If organizer, fetch all (or createdBy which getHackathons might not default to without params, but getHackathons is public currently? No, it's public.
-            // Organizer dashboard usually lists THEIR hackathons. 
-            // SubmissionReview was fetching ALL public hackathons.
-            // Improve: Fetch based on role.
-            let url = '/hackathons';
-            if (user?.role === 'judge') {
-                url = '/hackathons/judge/my';
-            } else if (user?.role === 'organizer') {
-                // Ideally fetching organizer's own events, but public list is okay if they filter.
-                // Assuming standard list for now.
-            }
-
-            const res = await api.get(url, config);
-            const data = Array.isArray(res.data) ? res.data : (res.data.data || []);
-            setHackathons(data);
-
-            // If ID in param, select it. Else select first.
-            if (hackathonId) {
-                setSelectedHackathon(hackathonId);
-            } else if (!selectedHackathon && data.length > 0) {
-                setSelectedHackathon(data[0]._id);
-            }
-        } catch (err) { console.error(err); }
-    };
-
-    const fetchSubmissions = async () => {
-        setLoading(true);
-        try {
-            const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
-            const res = await api.get(`/submissions/hackathon/${selectedHackathon}/round/${selectedRound}`, config);
-            setSubmissions(res.data);
-        } catch (err) { console.error(err); }
-        finally { setLoading(false); }
-    };
+    }, [selectedHackathon, selectedRound, fetchSubmissions]);
 
     return (
         <div className="min-h-screen bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
@@ -142,11 +131,11 @@ export default function SubmissionReview() {
                                                 const isUrl = field.type === 'url' || field.type === 'github' || field.type === 'video';
 
                                                 return isUrl ? (
-                                                    <a key={field.fieldKey} href={val} target="_blank" rel="noreferrer" className="text-[var(--color-primary)] hover:underline text-xs flex items-center gap-1" title={field.label}>
+                                                    <a key={field.fieldKey} href={ensureAbsoluteUrl(val)} target="_blank" rel="noreferrer" className="text-[var(--color-primary)] hover:underline text-xs flex items-center gap-1" title={field.label}>
                                                         {field.type === 'github' ? <Github size={14} /> : field.type === 'video' ? <Youtube size={14} /> : <ExternalLink size={14} />} {field.label}
                                                     </a>
                                                 ) : field.type === 'file' || field.type === 'ppt' ? (
-                                                    <a key={field.fieldKey} href={`${SERVER_URL}${val}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-[var(--color-bg-muted)] hover:bg-[var(--color-primary)]/10 text-[var(--color-text-primary)] px-2 py-1 rounded border border-[var(--color-border-default)] transition-colors">
+                                                    <a key={field.fieldKey} href={getFileUrl(val)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs bg-[var(--color-bg-muted)] hover:bg-[var(--color-primary)]/10 text-[var(--color-text-primary)] px-2 py-1 rounded border border-[var(--color-border-default)] transition-colors">
                                                         <FileText size={12} /> {field.label}
                                                     </a>
                                                 ) : (
@@ -156,9 +145,9 @@ export default function SubmissionReview() {
                                         ) : (
                                             // Legacy Fallback
                                             <>
-                                                {sub.githubUrl && <a href={sub.githubUrl} target="_blank" rel="noreferrer"><Github size={16} /></a>}
-                                                {sub.demoVideoUrl && <a href={sub.demoVideoUrl} target="_blank" rel="noreferrer"><Youtube size={16} /></a>}
-                                                {sub.pptUrl && <a href={`${SERVER_URL}${sub.pptUrl}`} target="_blank" rel="noreferrer" className="text-xs"><FileText size={14} /> PPT</a>}
+                                                {sub.githubUrl && <a href={ensureAbsoluteUrl(sub.githubUrl)} target="_blank" rel="noreferrer"><Github size={16} /></a>}
+                                                {sub.demoVideoUrl && <a href={ensureAbsoluteUrl(sub.demoVideoUrl)} target="_blank" rel="noreferrer"><Youtube size={16} /></a>}
+                                                {sub.pptUrl && <a href={getFileUrl(sub.pptUrl)} target="_blank" rel="noreferrer" className="text-xs"><FileText size={14} /> PPT</a>}
                                             </>
                                         )}
                                     </div>

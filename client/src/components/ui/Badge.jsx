@@ -9,7 +9,7 @@ const Badge = ({
 }) => {
     const variants = {
         default: 'bg-[var(--color-bg-muted)] text-[var(--color-text-secondary)]',
-        primary: 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]',
+        primary: 'bg-[rgba(var(--color-primary-rgb),0.1)] text-[var(--color-primary)]',
         success: 'bg-[var(--color-success-bg)] text-[var(--color-success)]',
         warning: 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]',
         danger: 'bg-[var(--color-danger-bg)] text-[var(--color-danger)]',

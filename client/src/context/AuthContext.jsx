@@ -71,11 +71,51 @@ export const AuthProvider = ({ children }) => {
         setError(null);
         try {
             const { data } = await api.post('/auth/register', { name, email, password, role });
+            if (data.message === 'OTP_SENT') {
+                return { success: true, message: 'OTP_SENT' };
+            }
+            localStorage.setItem('token', data.token);
+            setUser(data);
+            return { success: true };
+        } catch (err) {
+            setError(err.response?.data?.message || 'Registration failed');
+            return { success: false, message: err.response?.data?.message };
+        }
+    };
+
+    const verifyEmail = async (email, otp) => {
+        setError(null);
+        try {
+            const { data } = await api.post('/auth/verify-email', { email, otp });
+            localStorage.setItem('token', data.token);
+            setUser(data);
+            return { success: true };
+        } catch (err) {
+            setError(err.response?.data?.message || 'Verification failed');
+            return { success: false, message: err.response?.data?.message };
+        }
+    };
+
+    const resendOtp = async (email) => {
+        setError(null);
+        try {
+            await api.post('/auth/resend-otp', { email });
+            return { success: true };
+        } catch (err) {
+            setError(err.response?.data?.message || 'Resend failed');
+            return { success: false, message: err.response?.data?.message };
+        }
+    };
+
+    const googleLogin = async (token) => {
+        setError(null);
+        try {
+            const { data } = await api.post('/auth/google', { token });
             localStorage.setItem('token', data.token);
             setUser(data);
             return true;
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed');
+            setError(err.response?.data?.message || 'Google Login failed');
             return false;
         }
     };
@@ -86,7 +126,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, error, login, register, logout }}>
+        <AuthContext.Provider value={{ user, loading, error, login, register, verifyEmail, resendOtp, googleLogin, logout }}>
             {children}
         </AuthContext.Provider>
     );

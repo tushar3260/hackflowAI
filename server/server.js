@@ -23,7 +23,13 @@ const app = express();
 
 // Middleware
 // CORS Configuration
-app.use(cors("*"));
+const corsOptions = {
+    origin: process.env.FRONTEND_URL || "*",
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
@@ -37,12 +43,40 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/participant-profile', participantProfileRoutes);
 app.use('/api/participation', participationRoutes);
 app.use('/api/debug', debugRoutes);
+
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error(`[Error] ${err.name}: ${err.message}`);
+    if (process.env.NODE_ENV === 'development') {
+        console.error(err.stack);
+    }
+
+    const statusCode = err.status || 500;
+    res.status(statusCode).json({
+        success: false,
+        error: err.message || 'Internal Server Error',
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
+// Process Protection
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Application specific logging, throwing an error, or other logic here
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception thrown:', err);
+    // Log error, maybe restart gracefully
+    // process.exit(1);
 });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
 });

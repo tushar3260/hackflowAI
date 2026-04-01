@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/config';
+import { getFileUrl } from '../utils/fileUtils';
 import AuthContext from '../context/AuthContext';
 import { Container, Section } from '../components/ui/Layout';
 import Card, { CardContent, CardHeader, CardTitle } from '../components/ui/Card';

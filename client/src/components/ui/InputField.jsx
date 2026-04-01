@@ -19,7 +19,7 @@ const InputField = React.forwardRef(({
                 ref={ref}
                 className={`
           w-full px-4 py-2 rounded-[var(--radius-md)] border bg-[var(--color-bg-surface)] text-[var(--color-text-primary)]
-          focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)]
+          focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.2)] focus:border-[var(--color-primary)]
           disabled:bg-[var(--color-bg-muted)] disabled:cursor-not-allowed
           transition-all outline-none placeholder:text-[var(--color-text-muted)]
           ${error ? 'border-[var(--color-danger)] focus:border-[var(--color-danger)] focus:ring-[var(--color-danger)]/20' : 'border-[var(--color-border-default)]'}

@@ -1,6 +1,7 @@
 
 import React, { useState, useContext, useRef } from 'react';
-import api, { SERVER_URL } from '../api/config';
+import api from '../api/config';
+import { getFileUrl } from '../utils/fileUtils';
 import { Camera, Save, User, Mail, Lock, AlertCircle } from 'lucide-react';
 import AuthContext from '../context/AuthContext';
 import Card, { CardContent, CardTitle } from '../components/ui/Card';
@@ -26,7 +27,7 @@ export default function Profile() {
     });
     const [avatarFile, setAvatarFile] = useState(null);
     const [resumeFile, setResumeFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(user?.avatar ? `${SERVER_URL}${user.avatar}` : null);
+    const [previewUrl, setPreviewUrl] = useState(getFileUrl(user?.avatar));
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -236,7 +237,7 @@ export default function Profile() {
                                                         hover:file:bg-[var(--color-primary)]/20 cursor-pointer"
                                                 />
                                                 {user?.resumeUrl && (
-                                                    <a href={`${SERVER_URL}${user.resumeUrl}`} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-primary)] hover:underline whitespace-nowrap">
+                                                    <a href={getFileUrl(user.resumeUrl)} target="_blank" rel="noreferrer" className="text-xs text-[var(--color-primary)] hover:underline whitespace-nowrap">
                                                         View Current
                                                     </a>
                                                 )}

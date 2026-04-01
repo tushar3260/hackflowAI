@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import api from '../../api/config';
+import { getFileUrl, ensureAbsoluteUrl } from '../../utils/fileUtils';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Github, Youtube, FileText, Save, Layout, Lock, Shield } from 'lucide-react';
 
@@ -20,7 +21,6 @@ export default function JudgeEvaluation() {
     const { user } = useAuth();
 
     // Config Base URL for Assets
-    const SERVER_URL = (api.defaults.baseURL || '').replace('/api', '');
 
     const [submission, setSubmission] = useState(null);
     const [hackathon, setHackathon] = useState(null);
@@ -243,7 +243,7 @@ export default function JudgeEvaluation() {
 
                                 <div className="grid grid-cols-1 gap-4">
                                     {submission.githubUrl && (
-                                        <a href={submission.githubUrl} target="_blank" rel="noreferrer"
+                                        <a href={ensureAbsoluteUrl(submission.githubUrl)} target="_blank" rel="noreferrer"
                                             className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] hover:border-[var(--color-primary)] hover:bg-[var(--color-bg-muted)] transition-colors group">
                                             <Github size={24} className="text-[var(--color-text-primary)] group-hover:text-[var(--color-primary)]" />
                                             <div>
@@ -254,7 +254,7 @@ export default function JudgeEvaluation() {
                                         </a>
                                     )}
                                     {submission.demoVideoUrl && (
-                                        <a href={submission.demoVideoUrl} target="_blank" rel="noreferrer"
+                                        <a href={ensureAbsoluteUrl(submission.demoVideoUrl)} target="_blank" rel="noreferrer"
                                             className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] hover:border-[var(--color-danger)] hover:bg-[var(--color-bg-muted)] transition-colors group">
                                             <Youtube size={24} className="text-[var(--color-danger)]" />
                                             <div>
@@ -265,7 +265,7 @@ export default function JudgeEvaluation() {
                                         </a>
                                     )}
                                     {submission.pptUrl && (
-                                        <a href={`${SERVER_URL}${submission.pptUrl}`} target="_blank" rel="noreferrer"
+                                        <a href={getFileUrl(submission.pptUrl)} target="_blank" rel="noreferrer"
                                             className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] hover:border-[var(--color-warning)] hover:bg-[var(--color-bg-muted)] transition-colors group">
                                             <Layout size={24} className="text-[var(--color-warning)]" />
                                             <div>
@@ -276,7 +276,7 @@ export default function JudgeEvaluation() {
                                         </a>
                                     )}
                                     {submission.documentUrl && (
-                                        <a href={`${SERVER_URL}${submission.documentUrl}`} target="_blank" rel="noreferrer"
+                                        <a href={getFileUrl(submission.documentUrl)} target="_blank" rel="noreferrer"
                                             className="flex items-center gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--color-bg-surface)] border border-[var(--color-border-default)] hover:border-[var(--color-info)] hover:bg-[var(--color-bg-muted)] transition-colors group">
                                             <FileText size={24} className="text-[var(--color-info)]" />
                                             <div>

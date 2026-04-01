@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import api, { SERVER_URL } from '../../api/config';
+import api from '../../api/config';
+import { getFileUrl, ensureAbsoluteUrl } from '../../utils/fileUtils';
 import AuthContext from '../../context/AuthContext';
 import Card, { CardContent, CardTitle } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -87,40 +88,15 @@ export default function SubmissionPanel() {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
-    useEffect(() => {
-        fetchHackathons();
-        if (location.state?.initialHackathonId) {
-            setSelectedHackathon(location.state.initialHackathonId);
-        } else if (id) {
-            setSelectedHackathon(id);
-        }
-    }, [location.state, id]);
-
-    // Handle Round Selection from URL
-    useEffect(() => {
-        if (rounds.length > 0 && roundIndex && !activeRoundId) {
-            const r = rounds.find(r => r.order === parseInt(roundIndex));
-            if (r) setActiveRoundId(r._id);
-        }
-    }, [rounds, roundIndex]);
-
-    useEffect(() => {
-        if (selectedHackathon) {
-            fetchHackathonDetails();
-            fetchMyTeam();
-            fetchMySubmissions();
-        }
-    }, [selectedHackathon]);
-
-    const fetchHackathons = async () => {
+    const fetchHackathons = useCallback(async () => {
         try {
             const res = await api.get('/hackathons');
             const data = res.data.data || res.data;
             setHackathons(Array.isArray(data) ? data : []);
         } catch (err) { console.error(err); }
-    };
+    }, []);
 
-    const fetchHackathonDetails = async () => {
+    const fetchHackathonDetails = useCallback(async () => {
         try {
             // First check if we already have it in local list
             const existing = hackathons.find(h => h._id === selectedHackathon);
@@ -135,9 +111,9 @@ export default function SubmissionPanel() {
                 setRounds(res.data.rounds);
             }
         } catch (err) { console.error(err); }
-    };
+    }, [selectedHackathon, hackathons]);
 
-    const fetchMyTeam = async () => {
+    const fetchMyTeam = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -147,9 +123,9 @@ export default function SubmissionPanel() {
             const team = res.data.find(t => t.hackathon._id === selectedHackathon || t.hackathon === selectedHackathon);
             setMyTeam(team);
         } catch (err) { console.error(err); }
-    };
+    }, [selectedHackathon]);
 
-    const fetchMySubmissions = async () => {
+    const fetchMySubmissions = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             if (!token) return;
@@ -163,7 +139,32 @@ export default function SubmissionPanel() {
             });
             setSubmissions(filtered);
         } catch (err) { console.error(err); }
-    };
+    }, [selectedHackathon]);
+
+    useEffect(() => {
+        fetchHackathons();
+        if (location.state?.initialHackathonId) {
+            setSelectedHackathon(location.state.initialHackathonId);
+        } else if (id) {
+            setSelectedHackathon(id);
+        }
+    }, [location.state, id, fetchHackathons]);
+
+    // Handle Round Selection from URL
+    useEffect(() => {
+        if (rounds.length > 0 && roundIndex && !activeRoundId) {
+            const r = rounds.find(r => r.order === parseInt(roundIndex));
+            if (r) setActiveRoundId(r._id);
+        }
+    }, [rounds, roundIndex, activeRoundId]);
+
+    useEffect(() => {
+        if (selectedHackathon) {
+            fetchHackathonDetails();
+            fetchMyTeam();
+            fetchMySubmissions();
+        }
+    }, [selectedHackathon, fetchHackathonDetails, fetchMyTeam, fetchMySubmissions]);
 
     const handleFileChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.files[0] });
@@ -198,7 +199,7 @@ export default function SubmissionPanel() {
             const config = {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'multipart/form-material' // axios handles Boundary
+                    'Content-Type': 'multipart/form-data' // axios handles Boundary
                 }
             };
 
@@ -278,7 +279,6 @@ export default function SubmissionPanel() {
                             const effectiveStatus = resolveEffectiveRoundStatus(round);
                             const isOpen = effectiveStatus === 'open';
                             const isScheduled = effectiveStatus === 'scheduled';
-                            const isClosed = effectiveStatus === 'submission_closed' || effectiveStatus === 'judging' || effectiveStatus === 'published';
 
                             return (
                                 <Card key={round._id} className={`overflow-hidden transition-all ${sub ? 'border-[var(--color-success)]/50' : ''} ${isExpanded ? 'ring-2 ring-[var(--color-primary)]/20 shadow-lg' : ''}`}>
@@ -483,12 +483,12 @@ export default function SubmissionPanel() {
                                                             <div key={field.fieldKey} className="flex items-center gap-2 mr-4 mb-2">
                                                                 <span className="font-bold text-[var(--color-text-secondary)]">{field.label}:</span>
                                                                 {isUrl ? (
-                                                                    <a href={val} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline">
+                                                                    <a href={ensureAbsoluteUrl(val)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline">
                                                                         {field.type === 'github' ? <Github size={14} /> : field.type === 'video' ? <Youtube size={14} /> : <ExternalLink size={14} />}
                                                                         {val.length > 30 ? val.substring(0, 30) + '...' : val}
                                                                     </a>
                                                                 ) : isFile ? (
-                                                                    <a href={`${SERVER_URL}${val}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline">
+                                                                    <a href={getFileUrl(val)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline">
                                                                         <FileText size={14} /> View File
                                                                     </a>
                                                                 ) : (
@@ -501,17 +501,17 @@ export default function SubmissionPanel() {
                                                     // Legacy Fallback View
                                                     <>
                                                         {sub.githubUrl && (
-                                                            <a href={sub.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
+                                                            <a href={ensureAbsoluteUrl(sub.githubUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
                                                                 <Github size={14} /> GitHub Repo
                                                             </a>
                                                         )}
                                                         {sub.demoVideoUrl && (
-                                                            <a href={sub.demoVideoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
+                                                            <a href={ensureAbsoluteUrl(sub.demoVideoUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
                                                                 <Youtube size={14} /> Demo Video
                                                             </a>
                                                         )}
                                                         {sub.pptUrl && (
-                                                            <a href={`${SERVER_URL}${sub.pptUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
+                                                            <a href={getFileUrl(sub.pptUrl)} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-[var(--color-primary)] hover:underline font-medium">
                                                                 <FileText size={14} /> View PPT
                                                             </a>
                                                         )}

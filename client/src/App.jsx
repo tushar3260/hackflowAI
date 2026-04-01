@@ -8,6 +8,8 @@ import Layout from './components/layout/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
+import JudgeInviteAccept from './pages/JudgeInviteAccept';
 import Profile from './pages/Profile';
 import Dashboard from './pages/Dashboard';
 import CreateHackathon from './pages/dashboards/CreateHackathon';
@@ -34,6 +36,8 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
+            <Route path="/judge-invite/accept" element={<JudgeInviteAccept />} />
             <Route path="/hackathons" element={<Hackathons />} />
             <Route path="/hackathon/:id" element={<HackathonDetails />} />
 

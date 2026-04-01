@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { SERVER_URL } from '../../api/config';
+import { getFileUrl } from '../../utils/fileUtils';
 import { User, Menu, X, Terminal, Search, Bell, ChevronDown } from 'lucide-react';
 import Button from '../ui/Button';
-import Logo from '../ui/Logo';
+import AnimatedLogo from '../ui/AnimatedLogo';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -50,11 +50,18 @@ const Navbar = () => {
     const links = getLinks();
     const isActive = (path) => location.pathname === path;
 
+    // Hide Navbar on Login and Register pages
+    if (location.pathname === '/login' || location.pathname === '/register') {
+        return null;
+    }
+
     return (
         <nav
             className={`
-                sticky top-0 z-50 w-full transition-all duration-200 bg-[var(--color-bg-surface)]
-                ${isScrolled ? 'shadow-sm border-b border-[var(--color-border-default)]' : 'border-b border-transparent'}
+                sticky top-0 z-50 w-full transition-all duration-300
+                ${isScrolled 
+                    ? 'bg-[rgba(9,9,11,0.65)] backdrop-blur-xl border-b border-[rgba(255,255,255,0.05)] shadow-sm' 
+                    : 'bg-transparent border-b border-transparent'}
             `}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -63,7 +70,7 @@ const Navbar = () => {
                     {/* Left: Logo */}
                     <div className="flex-shrink-0 flex items-center">
                         <Link to="/" className="hover:opacity-90 transition-opacity">
-                            <Logo size="md" />
+                            <AnimatedLogo />
                         </Link>
                     </div>
 
@@ -75,7 +82,7 @@ const Navbar = () => {
                             </div>
                             <input
                                 type="text"
-                                className="block w-full pl-10 pr-3 py-2 border border-[var(--color-border-default)] rounded-[var(--radius-md)] leading-5 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:bg-[var(--color-bg-surface)] focus:ring-2 focus:ring-[var(--color-primary)]/20 focus:border-[var(--color-primary)] sm:text-sm transition-colors"
+                                className="block w-full pl-10 pr-3 py-2 border border-[var(--color-border-default)] rounded-[var(--radius-md)] leading-5 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder-[var(--color-text-muted)] focus:outline-none focus:bg-[var(--color-bg-surface)] focus:ring-2 focus:ring-[rgba(var(--color-primary-rgb),0.2)] focus:border-[var(--color-primary)] sm:text-sm transition-colors"
                                 placeholder="Search hackathons, teams, or projects..."
                             />
                         </div>
@@ -108,9 +115,9 @@ const Navbar = () => {
                                         onClick={() => setProfileOpen(!profileOpen)}
                                         className="flex items-center gap-2 focus:outline-none"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)] font-bold border border-[var(--color-primary)]/20">
+                                        <div className="w-8 h-8 rounded-full bg-[rgba(var(--color-primary-rgb),0.1)] flex items-center justify-center text-[var(--color-primary)] font-bold border border-[rgba(var(--color-primary-rgb),0.2)]">
                                             {user.avatar ? (
-                                                <img src={`${SERVER_URL}${user.avatar}`} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                                                <img src={getFileUrl(user.avatar)} alt="Profile" className="w-full h-full rounded-full object-cover" />
                                             ) : (
                                                 user.name.charAt(0).toUpperCase()
                                             )}
@@ -133,13 +140,13 @@ const Navbar = () => {
                                                 <Link
                                                     key={link.path}
                                                     to={link.path}
-                                                    className="block px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]"
+                                                    className="inline-block px-4 py-2 text-sm text-[var(--color-text-secondary)] nav-link-underline w-max mx-2"
                                                 >
                                                     {link.label}
                                                 </Link>
                                             ))}
 
-                                            <Link to="/profile" className="block px-4 py-2 text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)]">
+                                            <Link to="/profile" className="inline-block px-4 py-2 text-sm text-[var(--color-text-secondary)] nav-link-underline w-max mx-2">
                                                 My Profile
                                             </Link>
 
@@ -208,7 +215,7 @@ const Navbar = () => {
                         {!user && (
                             <>
                                 <Link to="/login" className="block px-3 py-2 rounded-[var(--radius-md)] text-base font-medium text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)]">Log in</Link>
-                                <Link to="/register" className="block px-3 py-2 rounded-[var(--radius-md)] text-base font-medium text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10">Sign up</Link>
+                                <Link to="/register" className="block px-3 py-2 rounded-[var(--radius-md)] text-base font-medium text-[var(--color-primary)] hover:bg-[rgba(var(--color-primary-rgb),0.1)]">Sign up</Link>
                             </>
                         )}
                     </div>

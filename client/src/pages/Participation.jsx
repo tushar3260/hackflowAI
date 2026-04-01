@@ -8,8 +8,9 @@ import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 import {
     Trophy, Calendar, CheckCircle, Clock, AlertCircle,
-    FileText, Upload, Lock, ChevronRight, Star
+    FileText, Upload, Lock, ChevronRight, Star, ArrowRight
 } from 'lucide-react';
+import StepTracker from '../components/ui/StepTracker';
 
 export default function Participation() {
     const { id } = useParams();
@@ -44,6 +45,18 @@ export default function Participation() {
         fetchData();
     }, [id, navigate]);
 
+    // Auto-Scroll to Active Round
+    useEffect(() => {
+        if (!loading && data) {
+            setTimeout(() => {
+                const activeRoundElement = document.getElementById('active-round');
+                if (activeRoundElement) {
+                    activeRoundElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 500);
+        }
+    }, [loading, data]);
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[var(--color-bg-primary)] pt-12">
@@ -72,10 +85,24 @@ export default function Participation() {
 
     const { hackathon, team, rounds } = data;
 
-    // Calculate Progress
+    // Calculate Progress & Active Step
     const completedRounds = rounds.filter(r => r.submission).length;
     const totalRounds = rounds.length;
     const progressPercent = Math.round((completedRounds / totalRounds) * 100);
+
+    // Compute UI Guidance Step Index
+    // Steps: 0: Join Team, 1: Complete Profile, 2: Submit Round, 3: Wait for Judging, 4: View Leaderboard
+    let currentStepIndex = 2; // Default to submit round if they are here
+    const activeRound = rounds.find(r => !r.submission && r.status === 'open');
+    const judgingRound = rounds.find(r => r.status === 'judging');
+    
+    if (activeRound) {
+        currentStepIndex = 2;
+    } else if (judgingRound) {
+        currentStepIndex = 3;
+    } else if (completedRounds === totalRounds && totalRounds > 0) {
+        currentStepIndex = 4; // Or 3 if still fully judging
+    }
 
     return (
         <div className="min-h-screen bg-[var(--color-bg-primary)] pb-24">
@@ -119,16 +146,26 @@ export default function Participation() {
             </div>
 
             <Container>
+                {/* Intelligent Step Tracker */}
+                <div className="mb-12 bg-[var(--color-bg-surface)] p-6 rounded-xl border border-[var(--color-border)] shadow-sm">
+                    <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-2 uppercase tracking-wide">Your Participation Journey</h2>
+                    <StepTracker currentStepIndex={currentStepIndex} />
+                </div>
+
                 <div className="space-y-8">
                     <div className="flex items-center justify-between">
                         <h2 className="text-heading-md text-[var(--color-text-primary)]">Competition Rounds</h2>
                     </div>
 
                     <div className="grid gap-6">
-                        {rounds.map((round) => (
-                            <Card key={round.roundIndex} className={`
+                        {rounds.map((round) => {
+                            const isActiveRound = !round.submission && round.status === 'open';
+                            
+                            return (
+                            <Card key={round.roundIndex} id={isActiveRound ? 'active-round' : undefined} className={`
                                 transition-all border-l-4 
                                 ${round.submission ? 'border-l-[var(--color-success)]' : 'border-l-[var(--color-border)]'}
+                                ${isActiveRound ? 'ring-2 ring-[var(--color-primary)] ring-offset-2 ring-offset-[var(--color-bg-primary)]' : ''}
                             `}>
                                 <CardContent className="p-0">
                                     <div className="flex flex-col md:flex-row">
@@ -185,12 +222,12 @@ export default function Participation() {
                                         </div>
 
                                         {/* Content Column */}
-                                        <div className="p-6 flex-1">
+                                        <div className="p-6 flex-1 flex flex-col">
                                             <p className="text-body-md text-[var(--color-text-secondary)] mb-6">
                                                 {round.description || "No description provided for this round."}
                                             </p>
 
-                                            <div className="flex flex-wrap gap-3">
+                                            <div className="mt-auto flex flex-wrap gap-3 items-center">
                                                 {round.submission ? (
                                                     // Submitted State
                                                     <>
@@ -210,11 +247,17 @@ export default function Participation() {
                                                 ) : (
                                                     // Pending State
                                                     round.status === 'open' ? (
-                                                        <Link to={`/hackathon/${id}/round/${round.roundIndex}/submit`}>
-                                                            <Button variant="primary" className="gap-2">
-                                                                <Upload size={16} /> Submit Project
-                                                            </Button>
-                                                        </Link>
+                                                        <div className="w-full bg-[rgba(var(--color-primary-rgb),0.05)] border border-[rgba(var(--color-primary-rgb),0.2)] rounded-lg p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                                            <div>
+                                                                <h4 className="text-sm font-semibold text-[var(--color-primary)] mb-1 flex items-center gap-2"><AlertCircle size={14} /> Action Required</h4>
+                                                                <p className="text-xs text-[var(--color-text-secondary)]">You have not submitted this round yet. Submit before the deadline to qualify.</p>
+                                                            </div>
+                                                            <Link to={`/hackathon/${id}/round/${round.roundIndex}/submit`} className="shrink-0 w-full sm:w-auto">
+                                                                <Button variant="primary" className="gap-2 w-full glow-pulse shadow-lg shadow-[rgba(var(--color-primary-rgb),0.2)]">
+                                                                    <Upload size={16} /> Submit Project
+                                                                </Button>
+                                                            </Link>
+                                                        </div>
                                                     ) : (
                                                         <Button variant="secondary" disabled className="gap-2 opacity-70 cursor-not-allowed">
                                                             <Lock size={16} /> {round.status === 'judging' ? 'Judging in Progress' : 'Submission Closed'}
@@ -226,7 +269,7 @@ export default function Participation() {
                                     </div>
                                 </CardContent>
                             </Card>
-                        ))}
+                        )})}
                     </div>
                 </div>
             </Container>

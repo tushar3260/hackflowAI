@@ -14,11 +14,11 @@ const Button = ({
     const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
     const variants = {
-        primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] focus:ring-[var(--color-primary)] shadow-sm hover:shadow-md',
-        secondary: 'bg-white text-[var(--color-text-secondary)] border border-[var(--color-border-default)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] focus:ring-[var(--color-border-strong)] shadow-sm',
-        ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-primary)]',
-        outline: 'bg-transparent border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]',
-        danger: 'bg-[var(--color-danger)] text-white hover:bg-red-600 focus:ring-red-500 shadow-sm',
+        primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] focus:ring-[var(--color-primary)] shadow-sm hover:shadow-md hover-lift hover-glow',
+        secondary: 'bg-white text-[var(--color-text-secondary)] border border-[var(--color-border-default)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-text-primary)] focus:ring-[var(--color-border-strong)] shadow-sm hover-lift',
+        ghost: 'bg-transparent text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-muted)] hover:text-[var(--color-primary)] hover-lift',
+        outline: 'bg-transparent border border-[var(--color-border-default)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover-lift',
+        danger: 'bg-[var(--color-danger)] text-white hover:bg-red-600 focus:ring-red-500 shadow-sm hover-lift',
     };
 
     const sizes = {

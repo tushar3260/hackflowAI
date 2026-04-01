@@ -1,5 +1,5 @@
 
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { Trophy, Activity, Zap, Target, Clock, Calendar, Upload } from 'lucide-react';
@@ -34,14 +34,7 @@ export default function ParticipantDashboard() {
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        if (user) {
-            fetchStats();
-            fetchMyHackathons();
-        }
-    }, [user]);
-
-    const fetchMyHackathons = async () => {
+    const fetchMyHackathons = useCallback(async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             const res = await api.get('/teams/my', config);
@@ -53,7 +46,7 @@ export default function ParticipantDashboard() {
                     ...team.hackathon,
                     teamId: team._id,
                     teamName: team.name,
-                    role: team.members.find(m => m.user === user._id)?.role || 'member'
+                    role: team.members.find(m => m.user === user?._id || m.user === user?.id)?.role || 'member'
                 };
             }).filter((h, index, self) =>
                 index === self.findIndex((t) => (
@@ -65,9 +58,9 @@ export default function ParticipantDashboard() {
         } catch (err) {
             console.error("Failed to fetch my hackathons", err);
         }
-    };
+    }, [user]);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             const res = await api.get('/hackathons/stats/participant', config);
@@ -90,7 +83,14 @@ export default function ParticipantDashboard() {
             setLoading(false);
             setChartData([]); // No dummy data
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+            fetchStats();
+            fetchMyHackathons();
+        }
+    }, [user, fetchStats, fetchMyHackathons]);
 
     if (loading) return <div className="p-12"><CardSkeleton /></div>;
 

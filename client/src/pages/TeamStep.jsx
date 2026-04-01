@@ -7,6 +7,7 @@ import Card, { CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import Button from '../components/ui/Button';
 import InputField from '../components/ui/InputField';
 import { Users, UserPlus } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function TeamStep() {
     const { id } = useParams();
@@ -36,6 +37,7 @@ export default function TeamStep() {
                 hackathonId: id
             }, config);
 
+            toast.success('Team created successfully!');
             navigate(`/hackathon/${id}/participation`);
         } catch (err) {
             setCreateError(err.response?.data?.message || 'Failed to create team');
@@ -57,6 +59,7 @@ export default function TeamStep() {
                 teamCode: joinCode
             }, config);
 
+            toast.success('Joined team successfully!');
             navigate(`/hackathon/${id}/participation`);
         } catch (err) {
             setJoinError(err.response?.data?.message || 'Failed to join team');

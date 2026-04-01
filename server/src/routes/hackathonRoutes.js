@@ -6,7 +6,8 @@ import {
     getHackathonById,
     updateHackathon,
     deleteHackathon,
-    addJudge,
+    inviteJudge,
+    acceptJudgeInvite,
     removeJudge,
     getJudgeHackathons,
     getOrganizerHackathons,
@@ -38,7 +39,10 @@ router.route('/:id')
 router.put('/:id/round/:roundIndex/status', protect, authorize('organizer'), organizerOwnershipGuard, updateRoundStatus);
 router.post('/:id/round/:roundIndex/publish-leaderboard', protect, authorize('organizer'), organizerOwnershipGuard, publishLeaderboard);
 
-router.post('/:id/judges', protect, authorize('organizer'), organizerOwnershipGuard, addJudge);
+
+router.post('/accept-judge-invite', protect, acceptJudgeInvite);
+router.post('/:id/invite-judge', protect, authorize('organizer'), organizerOwnershipGuard, inviteJudge);
+// router.post('/:id/judges', protect, authorize('organizer'), organizerOwnershipGuard, addJudge); // Deprecated
 router.delete('/:id/judges/:judgeId', protect, authorize('organizer'), organizerOwnershipGuard, removeJudge);
 
 export default router;

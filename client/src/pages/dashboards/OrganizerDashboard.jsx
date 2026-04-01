@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import api from '../../api/config';
 import AuthContext from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +19,8 @@ import InputField from '../../components/ui/InputField';
 export default function OrganizerDashboard() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
-    const [hackathons, setHackathons] = useState([]);
     const [recentEvents, setRecentEvents] = useState([]);
     const [showInviteModal, setShowInviteModal] = useState(false);
-    const [selectedHackathonId, setSelectedHackathonId] = useState(null);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteStatus, setInviteStatus] = useState('');
     const [loading, setLoading] = useState(true);
@@ -39,14 +37,7 @@ export default function OrganizerDashboard() {
 
     const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'];
 
-    useEffect(() => {
-        if (user) {
-            fetchHackathons();
-            fetchStats();
-        }
-    }, [user]);
-
-    const fetchHackathons = async () => {
+    const fetchHackathons = useCallback(async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             const res = await api.get('/hackathons/organizer/my', config);
@@ -70,9 +61,9 @@ export default function OrganizerDashboard() {
             console.error(err);
             setLoading(false);
         }
-    };
+    }, []);
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         try {
             const config = { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } };
             const res = await api.get('/hackathons/stats/organizer', config);
@@ -99,7 +90,14 @@ export default function OrganizerDashboard() {
                 { name: 'May', submissions: 60 },
             ]);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+            fetchHackathons();
+            fetchStats();
+        }
+    }, [user, fetchHackathons, fetchStats]);
 
     const handleInviteJudge = async (e) => {
         e.preventDefault();

@@ -2,6 +2,9 @@ import Hackathon from '../models/Hackathon.js';
 import User from '../models/User.js';
 import Team from '../models/Team.js';
 import Submission from '../models/Submission.js';
+import JudgeInvitation from '../models/JudgeInvitation.js';
+import crypto from 'crypto';
+import { sendEmail } from '../utils/emailService.js';
 
 // @desc    Create new hackathon
 // @route   POST /api/hackathons
@@ -183,10 +186,10 @@ export const deleteHackathon = async (req, res) => {
     }
 };
 
-// @desc    Add a judge to hackathon
-// @route   POST /api/hackathons/:id/judges
+// @desc    Invite a judge to hackathon
+// @route   POST /api/hackathons/:id/invite-judge
 // @access  Private (Organizer)
-export const addJudge = async (req, res) => {
+export const inviteJudge = async (req, res) => {
     try {
         const { email } = req.body;
         const hackathon = await Hackathon.findById(req.params.id);
@@ -198,20 +201,109 @@ export const addJudge = async (req, res) => {
             return res.status(403).json({ message: 'FORBIDDEN_NOT_OWNER: You can only manage hackathons you created.' });
         }
 
-        const judgeUser = await User.findOne({ email });
-        if (!judgeUser) return res.status(404).json({ message: 'User not found with this email' });
-        if (judgeUser.role !== 'judge') return res.status(400).json({ message: 'User is not a judge' });
-
-        if (hackathon.judges.includes(judgeUser._id)) {
-            return res.status(400).json({ message: 'Judge already added' });
+        // Check if judge already added
+        const existingJudge = await User.findOne({ email });
+        if (existingJudge && hackathon.judges.includes(existingJudge._id)) {
+            return res.status(400).json({ message: 'Judge already added to this hackathon' });
         }
 
-        hackathon.judges.push(judgeUser._id);
-        await hackathon.save();
-        await hackathon.populate('judges', 'name email');
+        // Check for existing pending invite
+        const pendingInvite = await JudgeInvitation.findOne({
+            hackathon: hackathon._id,
+            judgeEmail: email,
+            status: 'pending'
+        });
 
-        res.status(200).json(hackathon);
+        if (pendingInvite) {
+            // Option: Resend email or error? Let's error for now or update expiry + resend
+            // For simplicity, just say invite already sent.
+            return res.status(400).json({ message: 'Invitation already sent to this email' });
+        }
+
+        // Generate Token
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const inviteToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+        // Create Invitation
+        await JudgeInvitation.create({
+            hackathon: hackathon._id,
+            organizer: req.user.id,
+            judgeEmail: email,
+            inviteToken,
+            expiresAt: Date.now() + 48 * 60 * 60 * 1000 // 48 hours
+        });
+
+        // Send Email
+        const frontendUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const acceptUrl = `${frontendUrl}/judge-invite/accept?token=${rawToken}`;
+
+        await sendEmail({
+            to: email,
+            subject: `Invitation to Judge: ${hackathon.title}`,
+            html: `
+                <h3>You have been invited to judge <strong>${hackathon.title}</strong></h3>
+                <p>Organizer: ${req.user.name}</p>
+                <p>This invitation expires in 48 hours.</p>
+                <a href="${acceptUrl}" style="padding: 10px 20px; background-color: #4F46E5; color: white; text-decoration: none; border-radius: 5px;">Accept Invitation</a>
+                <p>Or click this link: <a href="${acceptUrl}">${acceptUrl}</a></p>
+            `
+        });
+
+        res.status(200).json({ message: `Invitation sent to ${email}` });
     } catch (error) {
+        console.error('Invite Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Accept Judge Invitation
+// @route   POST /api/hackathons/accept-judge-invite
+// @access  Private (Logged in user)
+export const acceptJudgeInvite = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+        const invitation = await JudgeInvitation.findOne({
+            inviteToken: hashedToken,
+            status: 'pending',
+            expiresAt: { $gt: Date.now() }
+        });
+
+        if (!invitation) {
+            return res.status(400).json({ message: 'Invalid or expired invitation' });
+        }
+
+        // Check if logged in user email matches invite email
+        if (req.user.email !== invitation.judgeEmail) {
+            return res.status(403).json({ message: 'This invitation was sent to a different email address.' });
+        }
+
+        // Check if user is a judge
+        if (req.user.role !== 'judge') {
+            return res.status(403).json({ message: 'You must have a "Judge" account to accept. Please update your profile role or create a judge account.' });
+        }
+
+        const hackathon = await Hackathon.findById(invitation.hackathon);
+        if (!hackathon) {
+            return res.status(404).json({ message: 'Hackathon no longer exists' });
+        }
+
+        // Add judge if not already added
+        if (!hackathon.judges.includes(req.user.id)) {
+            hackathon.judges.push(req.user.id);
+            await hackathon.save();
+        }
+
+        // Update Invitation
+        invitation.status = 'accepted';
+        invitation.acceptedAt = Date.now();
+        await invitation.save();
+
+        res.status(200).json({ message: 'Invitation accepted successfully', hackathonId: hackathon._id });
+
+    } catch (error) {
+        console.error('Accept Invite Error:', error);
         res.status(500).json({ message: error.message });
     }
 };

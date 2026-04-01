@@ -80,10 +80,10 @@ export const submitWork = async (req, res) => {
         let documentUrl = '';
 
         if (files.ppt && files.ppt.length > 0) {
-            pptUrl = `/uploads/${files.ppt[0].filename}`;
+            pptUrl = files.ppt[0].path;
         }
         if (files.document && files.document.length > 0) {
-            documentUrl = `/uploads/${files.document[0].filename}`;
+            documentUrl = files.document[0].path;
         }
 
         // 4. Check for existing submission
@@ -103,7 +103,7 @@ export const submitWork = async (req, res) => {
                 // Handle files
                 if (type === 'file' || type === 'ppt') {
                     if (files[fieldKey] && files[fieldKey].length > 0) {
-                        value = `/uploads/${files[fieldKey][0].filename}`;
+                        value = files[fieldKey][0].path;
                     } else if (submission && submission.submissionData && submission.submissionData[fieldKey]) {
                         // Keep existing file if not re-uploaded
                         value = submission.submissionData[fieldKey];

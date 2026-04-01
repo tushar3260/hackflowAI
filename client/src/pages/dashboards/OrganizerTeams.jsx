@@ -17,8 +17,6 @@ export default function OrganizerTeams() {
     const [hackathon, setHackathon] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const isOwner = hackathon?.createdBy?._id === (user?._id || user?.id) ||
-        hackathon?.createdBy === (user?._id || user?.id);
     const [error, setError] = useState(null);
 
     useEffect(() => {

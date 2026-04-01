@@ -8,6 +8,7 @@ import Button from '../components/ui/Button';
 import Card, { CardContent, CardTitle } from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import InputField from '../components/ui/InputField';
+import Tooltip from '../components/ui/Tooltip';
 import { Grid, Section, Container } from '../components/ui/Layout';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
@@ -294,13 +295,18 @@ const HackathonDetails = () => {
                                                 Checking Status...
                                             </div>
                                         ) : myTeam ? (
-                                            <Button variant="success" className="w-full justify-center text-lg py-6" onClick={() => navigate(`/hackathon/${id}/participation`)}>
-                                                <ExternalLink size={20} className="mr-2" /> Go to Dashboard
+                                            <Button variant="success" className="w-full justify-center text-lg py-6 glow-pulse shadow-lg shadow-[rgba(var(--color-success-rgb),0.2)]" onClick={() => navigate(`/hackathon/${id}/participation`)}>
+                                                <ExternalLink size={20} className="mr-2" /> Resume Participation
                                             </Button>
                                         ) : (
-                                            <Button variant="primary" className="w-full justify-center text-lg py-6" onClick={handleApply} disabled={isEnded}>
-                                                Apply Now
-                                            </Button>
+                                            <div className="relative">
+                                                <Button variant="primary" className="w-full justify-center text-lg py-6 glow-pulse shadow-lg shadow-[rgba(var(--color-primary-rgb),0.2)]" onClick={handleApply} disabled={isEnded}>
+                                                    Join a Team to Apply
+                                                </Button>
+                                                <div className="absolute -top-3 -right-3">
+                                                    <Tooltip content="Joining a team is the first step to access the participation dashboard." position="top" />
+                                                </div>
+                                            </div>
                                         )
                                     ) : null}
 

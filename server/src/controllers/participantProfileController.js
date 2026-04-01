@@ -33,7 +33,7 @@ export const createOrUpdateProfile = async (req, res) => {
         };
 
         if (req.file) {
-            profileFields.resumeUrl = `/uploads/${req.file.filename}`;
+            profileFields.resumeUrl = req.file.path;
         }
 
         let profile = await HackathonParticipantProfile.findOne({

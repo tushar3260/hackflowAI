@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/config';
 import AuthContext from '../../context/AuthContext';
@@ -23,45 +23,23 @@ export default function OrganizerJudges() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    useEffect(() => {
-        fetchHackathon();
-    }, [id]);
-
-    const fetchHackathon = async () => {
+    const fetchHackathon = useCallback(async () => {
         try {
             const token = localStorage.getItem('token');
             const res = await api.get(`/hackathons/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            // Need to populate judges details. 
-            // The getHackathonById endpoint might not populate 'judges' deeply or at all depending on controller.
-            // Let's assume for now it returns IDs or we need a specific endpoint. 
-            // Actually getHackathonById populates createdBy. 
-            // Previous controller code: .populate('createdBy', 'name email').
-            // It does NOT populate judges. We need to fetch details or update controller.
-            // For now, I will optimistically check if they are populated or just ID.
-            // If just ID, UI will be ugly. 
-            // CORRECT APPROACH: Update getHackathonById in controller to populate judges?
-            // OR make a specific getHackathonJudges endpoint.
-            // Trying to use what we have: checks hackathon.judges.
-            // Let's rely on React state updates after "Invite" which returns updated hackathon. 
-            // BUT initial load needs population.
-            // I'll update the controller to populate judges in a separate Step or here?
-            // I should assume I need to populate.
-            // Let's check if I can just Populate in the Controller quickly.
-
-            // Wait, looking at file view of hackathonController.js
-            // getHackathonById: .populate('createdBy', 'name email'); 
-            // It MISSES judges.
-
             setHackathon(res.data);
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to load hackathon');
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
+    useEffect(() => {
+        fetchHackathon();
+    }, [fetchHackathon]);
     // Helper to fetch full details if not populated
     // Actually, I should update the backend controller to populate judges for the Organizer.
     // I will do that in next step. For now writing frontend.
@@ -74,15 +52,17 @@ export default function OrganizerJudges() {
 
         try {
             const token = localStorage.getItem('token');
-            const res = await api.post(`/hackathons/${id}/judges`,
+            // Use new invite-judge endpoint
+            const res = await api.post(`/hackathons/${id}/invite-judge`,
                 { email: inviteEmail },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            setHackathon(res.data);
-            setSuccess('Judge invited successfully!');
+
+            // API returns message, not hackathon object
+            setSuccess(res.data.message || 'Invitation sent successfully!');
             setInviteEmail('');
-            // reload to get populated data if controller updated
-            window.location.reload();
+
+            // We don't reload or update hackathon because judge isn't added yet
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to invite judge');
         } finally {
@@ -134,7 +114,7 @@ export default function OrganizerJudges() {
                                 <CardContent>
                                     <form onSubmit={handleInvite} className="space-y-4">
                                         <p className="text-sm text-[var(--color-text-secondary)]">
-                                            Enter the email address of the user you want to invite as a judge. They must already have a "Judge" account.
+                                            Send an email invitation to a judge. They will receive a secure link to accept and join the hackathon.
                                         </p>
                                         <InputField
                                             label="Judge Email"
