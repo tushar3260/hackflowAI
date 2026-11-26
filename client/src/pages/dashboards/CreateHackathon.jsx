@@ -406,7 +406,6 @@ export default function CreateHackathon() {
                                                         value={criteria.title}
                                                         onChange={(e) => updateCriteria(rIndex, cIndex, 'title', e.target.value)}
                                                         placeholder="e.g. Innovation"
-                                                        className="bg-white"
                                                         required
                                                     />
                                                 </div>
@@ -416,7 +415,6 @@ export default function CreateHackathon() {
                                                         type="number"
                                                         value={criteria.maxMarks}
                                                         onChange={(e) => updateCriteria(rIndex, cIndex, 'maxMarks', e.target.value)}
-                                                        className="bg-white"
                                                         required
                                                     />
                                                 </div>
