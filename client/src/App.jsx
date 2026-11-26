@@ -8,6 +8,7 @@ import Layout from './components/layout/Layout';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import JudgeInviteAccept from './pages/JudgeInviteAccept';
 import Profile from './pages/Profile';
@@ -36,6 +37,8 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ForgotPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/judge-invite/accept" element={<JudgeInviteAccept />} />
             <Route path="/hackathons" element={<Hackathons />} />
