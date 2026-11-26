@@ -351,8 +351,11 @@ export const forgotPassword = async (req, res) => {
             console.log('✅ Password Reset OTP Sent to:', user.email);
             res.json({ message: 'OTP_SENT', email: user.email });
         } catch (emailError) {
-            console.error('❌ Reset Email Send Error:', emailError);
-            res.status(500).json({ message: 'Failed to send reset email. Please try again later.' });
+            console.error('❌ Reset Email Send Error:', emailError.message || emailError);
+            console.log(`🔑 [BACKUP / SERVER LOGS] Reset OTP for ${user.email} is: ${otp}`);
+            res.status(500).json({
+                message: emailError.message || 'Failed to send reset email. Please try again later.'
+            });
         }
     } catch (error) {
         console.error('❌ Forgot Password Error:', error.message);
