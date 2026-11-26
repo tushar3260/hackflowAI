@@ -302,6 +302,121 @@ export const resendOtp = async (req, res) => {
     }
 };
 
+// @desc    Forgot Password - Send Reset OTP
+// @route   POST /api/auth/forgot-password
+// @access  Public
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: 'Please provide an email address' });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        if (!user) {
+            return res.status(404).json({ message: 'No account found with this email' });
+        }
+
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Hash OTP with salt
+        const salt = crypto.randomBytes(16).toString('hex');
+        const hash = crypto.pbkdf2Sync(otp, salt, 1000, 64, 'sha512').toString('hex');
+
+        user.resetPasswordToken = `${salt}:${hash}`;
+        user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+        await user.save();
+
+        // Send Email
+        try {
+            await sendEmail({
+                to: user.email,
+                subject: 'Hackflow AI - Password Reset Verification Code',
+                text: `Your password reset code is: ${otp}. It will expire in 10 minutes.`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <h2 style="color: #4f46e5; text-align: center;">Hackflow AI</h2>
+                        <h3 style="color: #111827;">Password Reset Request</h3>
+                        <p style="color: #4b5563;">We received a request to reset your password. Use the verification code below to reset it:</p>
+                        <div style="text-align: center; margin: 24px 0;">
+                            <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #4f46e5; background: #f5f3ff; padding: 10px 24px; border-radius: 6px; display: inline-block;">
+                                ${otp}
+                            </span>
+                        </div>
+                        <p style="color: #6b7280; font-size: 14px;">This code will expire in <strong>10 minutes</strong>. If you did not make this request, you can safely ignore this email.</p>
+                    </div>
+                `
+            });
+            console.log('✅ Password Reset OTP Sent to:', user.email);
+            res.json({ message: 'OTP_SENT', email: user.email });
+        } catch (emailError) {
+            console.error('❌ Reset Email Send Error:', emailError);
+            res.status(500).json({ message: 'Failed to send reset email. Please try again later.' });
+        }
+    } catch (error) {
+        console.error('❌ Forgot Password Error:', error.message);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
+// @desc    Reset Password with OTP
+// @route   POST /api/auth/reset-password
+// @access  Public
+export const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: 'Please provide email, verification code, and new password' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ message: 'Password must be at least 6 characters' });
+        }
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        if (!user.resetPasswordToken || !user.resetPasswordExpire) {
+            return res.status(400).json({ message: 'No active password reset request found. Please request a new code.' });
+        }
+
+        if (Date.now() > user.resetPasswordExpire) {
+            return res.status(400).json({ message: 'Verification code has expired. Please request a new code.' });
+        }
+
+        // Verify OTP
+        const [salt, hash] = user.resetPasswordToken.split(':');
+        const verifyHash = crypto.pbkdf2Sync(otp, salt, 1000, 64, 'sha512').toString('hex');
+
+        if (verifyHash !== hash) {
+            return res.status(400).json({ message: 'Invalid verification code' });
+        }
+
+        // Update password and clear reset tokens
+        user.password = newPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpire = undefined;
+        user.isEmailVerified = true; // Verified since they received the OTP on their email
+        await user.save();
+
+        res.json({
+            message: 'Password reset successfully',
+            _id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            token: generateToken(user._id)
+        });
+    } catch (error) {
+        console.error('❌ Reset Password Error:', error.message);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
+
 
 import { OAuth2Client } from 'google-auth-library';
 
