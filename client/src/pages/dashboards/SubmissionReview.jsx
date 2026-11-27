@@ -29,6 +29,8 @@ export default function SubmissionReview() {
             let url = '/hackathons';
             if (user?.role === 'judge') {
                 url = '/hackathons/judge/my';
+            } else if (user?.role === 'organizer') {
+                url = '/hackathons/organizer/my';
             }
 
             const res = await api.get(url, config);

@@ -93,7 +93,7 @@ export default function OrganizerJudges() {
         <div className="min-h-screen bg-[var(--color-bg-primary)] pb-20">
             <Container>
                 <div className="pt-8 mb-8">
-                    <Button variant="ghost" className="mb-4 pl-0 gap-2" onClick={() => navigate(`/dashboard/organizer`)}>
+                    <Button variant="ghost" className="mb-4 pl-0 gap-2" onClick={() => navigate('/dashboard')}>
                         <ArrowLeft size={16} /> Back to Dashboard
                     </Button>
                     <h1 className="text-display-sm text-[var(--color-text-primary)] mb-2">Manage Judges</h1>
