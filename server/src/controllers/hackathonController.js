@@ -382,8 +382,18 @@ export const getOrganizerStats = async (req, res) => {
         // 2. Count Stats
         const totalEvents = hackathons.length;
 
-        const totalTeams = await Team.countDocuments({ hackathon: { $in: hackathonIds } });
+        const teams = await Team.find({ hackathon: { $in: hackathonIds } }).select('leader members');
+        const totalTeams = teams.length;
         const activeTeams = totalTeams; // For now assumed active
+
+        const uniqueParticipants = new Set();
+        teams.forEach(t => {
+            if (t.leader) uniqueParticipants.add(t.leader.toString());
+            (t.members || []).forEach(m => {
+                if (m) uniqueParticipants.add(m.toString());
+            });
+        });
+        const totalParticipants = uniqueParticipants.size;
 
         const totalSubmissions = await Submission.countDocuments({ hackathon: { $in: hackathonIds } });
 
@@ -416,7 +426,8 @@ export const getOrganizerStats = async (req, res) => {
                 totalEvents,
                 activeTeams,
                 totalSubmissions,
-                completionRate
+                completionRate,
+                totalParticipants
             },
             chartData
         });
